@@ -50,4 +50,4 @@ It optimizes the build for the best performance.
 
 Testing: [jest](https://jestjs.io/docs/getting-started)  
 Swagger: [tsoa](https://tsoa-community.github.io/docs/live-reloading.html)  
-Logging: [winston](https://github.com/winstonjs/winston#table-of-contents)  
+Logging: [winston](https://github.com/winstonjs/winston#table-of-contents)
