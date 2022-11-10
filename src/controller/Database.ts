@@ -1,31 +1,51 @@
-import * as dotenv from "dotenv"
-dotenv.config()
-import * as mongodb from "mongodb";
-import { Filter } from "mongodb";
+import * as dotenv from "dotenv";
+import { User } from "../model/User";
+import { Filter, MongoClient } from "mongodb";
 
-const uri = String(process.env.DB_CONN_STRING);
-let client: mongodb.MongoClient;
+dotenv.config();
 
-export async function connectDB() {
-  client = await mongodb.MongoClient.connect(String(process.env.DB_CONN_STRING));
-  console.log(uri);
-  // Use connect method to connect to the server
-  console.log("")
-  return "done.";
-}
-export async function closeDB() {
-  await client.close();
-  return "connection closed."
-}
-export async function getDataDB(dbName: string, collection: string) {
-  return await client.db(dbName).collection(collection).findOne();
-}
+export class Database {
+  url: string;
+  database: string;
+  collection: string;
+  client: MongoClient;
 
-export async function sendDataDB(dbName: string, collection: string, payload: object) {
-  return await client.db(dbName).collection(collection).insertOne(payload);
-}
+  constructor(user: User, database: string, collection: string) {
+    switch (user) {
+      case User.LEGET:
+        this.url = process.env.DB_CONN_LEGET || "";
+        break;
+      case User.SCRIBIT:
+        this.url = process.env.DB_CONN_SCRIBIT || "";
+        break;
+      case User.REPONIT:
+        this.url = process.env.DB_CONN_REPONIT || "";
+        break;
+      case User.EXSTINGUET:
+        this.url = process.env.DB_CONN_REPONIT || "";
+        break;
+    }
+    this.database = database;
+    this.collection = collection;
+    this.client = new MongoClient(this.url);
+  }
 
-export async function deleteDataDB(dbName: string, collection: string, filter: Filter<object>) {
-  return await client.db(dbName).collection(collection).deleteOne(filter);
-}
+  async getData(filter: Filter<Object>) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).findOne(filter);
+  }
 
+  async insertData(data: Object) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).insertOne(data);
+  }
+
+  async deleteData(filter: Filter<Object>) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).deleteOne(filter);
+  }
+
+  async close() {
+    await this.client.close();
+  }
+}
