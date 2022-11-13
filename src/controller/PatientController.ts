@@ -1,10 +1,10 @@
 import { Controller, Example, Get, Route } from "tsoa";
-import { Patient } from "../model/PData";
+import { Patient } from "../model/Patient";
 import { Database } from "./Database";
 import { User } from "../model/User";
 
 @Route("data")
-export class PDataController extends Controller {
+export class PatientController extends Controller {
   @Example<Patient>({
     id: "15d37d7a-bd45-49b4-b83c-bd3393c2ca91",
     first_name: "Gernot",
