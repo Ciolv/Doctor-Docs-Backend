@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { User } from "../model/User";
+import { DatabaseUser } from "../model/DatabaseUser";
 import { Filter, MongoClient } from "mongodb";
 
 dotenv.config();
@@ -10,18 +10,18 @@ export class Database {
   collection: string;
   client: MongoClient;
 
-  constructor(user: User, database: string, collection: string) {
+  constructor(user: DatabaseUser, database: string, collection: string) {
     switch (user) {
-      case User.LEGET:
+      case DatabaseUser.LEGET:
         this.url = process.env.DB_CONN_LEGET || "";
         break;
-      case User.SCRIBIT:
+      case DatabaseUser.SCRIBIT:
         this.url = process.env.DB_CONN_SCRIBIT || "";
         break;
-      case User.REPONIT:
+      case DatabaseUser.REPONIT:
         this.url = process.env.DB_CONN_REPONIT || "";
         break;
-      case User.EXSTINGUET:
+      case DatabaseUser.EXSTINGUET:
         this.url = process.env.DB_CONN_REPONIT || "";
         break;
     }

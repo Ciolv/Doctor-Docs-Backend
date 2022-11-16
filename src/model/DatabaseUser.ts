@@ -1,4 +1,4 @@
-export enum User {
+export enum DatabaseUser {
   LEGET = "leget",
   SCRIBIT = "scribit",
   REPONIT = "reponit",
