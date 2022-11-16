@@ -1,6 +1,9 @@
 import * as dotenv from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
-import { Filter, MongoClient } from "mongodb";
+import { Filter, MongoClient, ObjectId } from "mongodb";
+import { File } from "../model/File";
+import { Permission } from "../model/Permission";
+import { FilePermission } from "../model/FilePermission";
 
 dotenv.config();
 
@@ -28,6 +31,25 @@ export class Database {
     this.database = database;
     this.collection = collection;
     this.client = new MongoClient(this.url);
+  }
+
+  async getFile(fileId: string, userId: string) {
+
+    const fileObjectId = new ObjectId(fileId);
+    const requiredPermission = new Permission(userId, FilePermission.Write)
+    const filter = {
+      _id: fileObjectId,
+      "users": [
+        requiredPermission
+      ]
+    };
+
+    const file = await this.getData(filter);
+    if (file !== null) {
+      return file as unknown as File;
+    }
+
+    return File.prototype;
   }
 
   async getData(filter: Filter<Object>) {
