@@ -1,7 +1,7 @@
 import { Controller, Example, Get, Route } from "tsoa";
 import { Patient } from "../model/Patient";
 import { Database } from "./Database";
-import { User } from "../model/User";
+import { DatabaseUser } from "../model/DatabaseUser";
 
 @Route("data")
 export class PatientController extends Controller {
@@ -18,7 +18,7 @@ export class PatientController extends Controller {
   })
   @Get("get")
   public async getData() {
-    const db: Database = new Database(User.LEGET, "documents", "files");
+    const db: Database = new Database(DatabaseUser.LEGET, "documents", "files");
     const data = (await db.getData({})) as Object;
     console.log(data);
     return JSON.stringify(data);
@@ -26,7 +26,7 @@ export class PatientController extends Controller {
 
   @Get("insert")
   public async insertData() {
-    const db: Database = new Database(User.SCRIBIT, "documents", "files");
+    const db: Database = new Database(DatabaseUser.SCRIBIT, "documents", "files");
     const data = { content: "This is a simple test document." };
     const result = await db.insertData(data);
     console.log(result);
