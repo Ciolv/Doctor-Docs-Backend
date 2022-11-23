@@ -31,6 +31,7 @@ export class DoctorController extends Controller {
         doctors.push(doctor);
       });
     });
+    this.setHeader("Access-Control-Allow-Origin", "*");
     return doctors;
   }
 }
