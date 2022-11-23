@@ -35,6 +35,11 @@ export class Database {
     return await this.client.db(this.database).collection(this.collection).findOne(filter);
   }
 
+  async getMany(filter: Filter<Object>) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).find(filter).toArray();
+  }
+
   async insertData(data: Object) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).insertOne(data);
