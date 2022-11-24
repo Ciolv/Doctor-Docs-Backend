@@ -15,7 +15,7 @@ export class DoctorController extends Controller {
   })
   @Get("{searchTerm}")
   public async getDoctors(@Path() searchTerm: string) {
-    const re = new RegExp("\\w*" + searchTerm + "\\w*");
+    const re = new RegExp(`\\w*${searchTerm}\\w*`);
     console.log(re);
     const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
     const doctors: Doctor[] = [];
