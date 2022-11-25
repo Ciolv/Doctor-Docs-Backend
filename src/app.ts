@@ -6,19 +6,19 @@ import cors from "cors";
 
 export const app = express();
 
-const corsOptions = {
-  origin: "*",
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
-
 // Use body parser to read sent json payloads
 app.use(
   urlencoded({
     extended: true,
   })
 );
+
+const corsOptions = {
+  origin: "http://localhost:3000",
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 app.use(json());
 
 app.use("/docs", swaggerUi.serve, async (_req: Request, res: Response) => {

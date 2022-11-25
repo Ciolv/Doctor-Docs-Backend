@@ -1,6 +1,9 @@
 import { config } from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
-import { Filter, MongoClient } from "mongodb";
+import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
+import { File } from "../model/File";
+import { FilePermission } from "../model/FilePermission";
+import { Permission } from "../model/Permission";
 
 config();
 
@@ -26,10 +29,62 @@ export class Database {
         break;
       default:
         this.url = process.env.DB_CONN_LEGET || "";
+        break;
     }
     this.database = database;
     this.collection = collection;
     this.client = new MongoClient(this.url);
+  }
+
+  async getFile(fileId: string, userId: string) {
+    const fileObjectId = new ObjectId(fileId);
+    const filter = {
+      _id: fileObjectId,
+      "users.userId": userId,
+      "users.permission": { $gte: FilePermission.Read },
+    };
+
+    const file = await this.getData(filter);
+
+    if (file !== null) {
+      return file.content.buffer as Buffer;
+    }
+
+    return new Blob();
+  }
+
+  async getAllFiles(userId: string) {
+    const filter = {
+      ownerId: userId,
+      "users.userId": userId,
+      "users.permission": { $gte: FilePermission.Read },
+    };
+
+    const options = {
+      projection: {
+        _id: 1,
+        name: 1,
+        parentId: 1,
+        ownerId: 1,
+        users: 1,
+        size: 1,
+        lastUpdateTime: 1,
+      },
+    };
+
+    return await this.getAllData(filter, options);
+  }
+
+  async uploadFile(fileName: string, size: number, buffer: Buffer, userId: string, parentId: string) {
+    const maxFileSize = 5000000000000;
+    if (size < maxFileSize) {
+      const file = new File(fileName, buffer, parentId, userId, size);
+      file.users.push(new Permission(userId, FilePermission.Delete));
+
+      const result = await this.insertData(file);
+      return result.insertedId;
+    }
+    return false;
   }
 
   async getData(filter: Filter<Record<string, any>>) {
@@ -37,12 +92,27 @@ export class Database {
     return await this.client.db(this.database).collection(this.collection).findOne(filter);
   }
 
+  async getAllData(filter: Filter<object>, options: FindOptions<object>) {
+    await this.client.connect();
+    const result = this.client.db(this.database).collection<File>(this.collection).find(filter, options);
+
+    const documents: File[] = [];
+    // skipcq:  JS-0032
+    while (await result.hasNext()) {
+      // skipcq:  JS-0032
+      const doc = await result.next();
+      documents.push(<File>doc);
+    }
+
+    return documents;
+  }
+
   async getMany(filter: Filter<Record<string, any>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).find(filter).toArray();
   }
 
-  async insertData(data: Record<string, any>) {
+  async insertData(data: object) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).insertOne(data);
   }
