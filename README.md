@@ -1,5 +1,11 @@
 # Doctor Docs Backend
 
+## DISCLAIMER
+
+Do not take this project seriously, it is only a demo project for studies!
+
+## Description
+
 Doctor Docs is an electronic health record service, created to reduce cost and accelerate information exchange.
 
 By reducing double counting of diseases, doctor's offices can focus on what they really want to do, help people!
