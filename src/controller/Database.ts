@@ -1,11 +1,11 @@
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
 import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 
-dotenv.config();
+config();
 
 export class Database {
   url: string;
@@ -28,7 +28,7 @@ export class Database {
         this.url = process.env.DB_CONN_REPONIT || "";
         break;
       default:
-        this.url = "";
+        this.url = process.env.DB_CONN_LEGET || "";
         break;
     }
     this.database = database;
@@ -87,7 +87,7 @@ export class Database {
     return false;
   }
 
-  async getData(filter: Filter<object>) {
+  async getData(filter: Filter<Record<string, any>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).findOne(filter);
   }
@@ -107,12 +107,17 @@ export class Database {
     return documents;
   }
 
+  async getMany(filter: Filter<Record<string, any>>) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).find(filter).toArray();
+  }
+
   async insertData(data: object) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).insertOne(data);
   }
 
-  async deleteData(filter: Filter<object>) {
+  async deleteData(filter: Filter<Record<string, any>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).deleteOne(filter);
   }

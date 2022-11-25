@@ -19,8 +19,9 @@ export class PatientController extends Controller {
   @Get("get")
   public async getData() {
     const db: Database = new Database(DatabaseUser.LEGET, "documents", "files");
-    const data = (await db.getData({})) as Object;
+    const data = (await db.getData({})) as Record<string, any>;
     console.log(data);
+    this.setHeader("Access-Control-Allow-Origin", "*");
     return JSON.stringify(data);
   }
 
@@ -30,6 +31,7 @@ export class PatientController extends Controller {
     const data = { content: "This is a simple test document." };
     const result = await db.insertData(data);
     console.log(result);
+    this.setHeader("Access-Control-Allow-Origin", "*");
     return String(result);
   }
 }
