@@ -41,7 +41,7 @@ export class Database {
     const filter = {
       _id: fileObjectId,
       "users.userId": userId,
-      "users.permission": { $gte: FilePermission.Read }
+      "users.permission": { $gte: FilePermission.Read },
     };
 
     const file = await this.getData(filter);
@@ -55,9 +55,9 @@ export class Database {
 
   async getAllFiles(userId: string) {
     const filter = {
-      "ownerId": userId,
+      ownerId: userId,
       "users.userId": userId,
-      "users.permission": { $gte: FilePermission.Read }
+      "users.permission": { $gte: FilePermission.Read },
     };
 
     const options = {
@@ -68,8 +68,8 @@ export class Database {
         ownerId: 1,
         users: 1,
         size: 1,
-        lastUpdateTime: 1
-      }
+        lastUpdateTime: 1,
+      },
     };
 
     return await this.getAllData(filter, options);
@@ -94,18 +94,14 @@ export class Database {
 
   async getAllData(filter: Filter<object>, options: FindOptions<object>) {
     await this.client.connect();
-    const result = this.client.db(this.database).collection<File>(this.collection).find(
-      filter,
-      options
-    );
+    const result = this.client.db(this.database).collection<File>(this.collection).find(filter, options);
 
     const documents: File[] = [];
     // skipcq:  JS-0032
     while (await result.hasNext()) {
       // skipcq:  JS-0032
       const doc = await result.next();
-      documents.push((<File>doc
-                     ));
+      documents.push(<File>doc);
     }
 
     return documents;

@@ -9,13 +9,13 @@ export const app = express();
 // Use body parser to read sent json payloads
 app.use(
   urlencoded({
-               extended: true
-             })
+    extended: true,
+  })
 );
 
 const corsOptions = {
   origin: "http://localhost:3000",
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
