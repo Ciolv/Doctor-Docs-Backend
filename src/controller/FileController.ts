@@ -6,6 +6,7 @@ import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
 import express from "express";
 import multer from "multer";
+import { Readable } from "stream";
 
 @Route("files")
 export class FileController extends Controller {
@@ -39,12 +40,8 @@ export class FileController extends Controller {
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
-    const file = await this.readDatabaseHandler.getFile(fileId, userId);
-
-    return new Promise<undefined>(resolve => {
-      this.setHeader("type", "application/octet-stream");
-      resolve(file);
-    });
+    const file = await this.readDatabaseHandler.getFile(fileId, userId) as Buffer;
+    return Readable.from(file);
   }
 
   @Get("")

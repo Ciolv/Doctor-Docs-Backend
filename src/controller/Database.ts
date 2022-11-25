@@ -4,6 +4,7 @@ import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
+// import * as fs from "fs";
 
 dotenv.config();
 
@@ -43,9 +44,8 @@ export class Database {
 
     const file = await this.getData(filter);
 
-
     if (file !== null) {
-      return file.content;
+      return file.content.buffer as Buffer;
     }
 
     return new Blob();
