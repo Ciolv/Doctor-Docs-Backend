@@ -68,6 +68,6 @@ export class FileController extends Controller {
       );
     }
 
-    return Promise.reject("Could not upload");
+    return Promise.reject(new Error("Could not upload"));
   }
 }
