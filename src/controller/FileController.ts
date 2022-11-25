@@ -57,7 +57,7 @@ export class FileController extends Controller {
     await new Promise<void>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      multerSingle(request, undefined, async (error) => {
+      multerSingle(request, undefined, (error) => {
         if (error) {
           reject(error);
         }
@@ -74,7 +74,8 @@ export class FileController extends Controller {
       );
     }
 
-    return;
-    // file will be in request.randomFileIsHere, it is a buffer
+    return new Promise((_resolve, reject) => {
+      reject();
+    });
   }
 }

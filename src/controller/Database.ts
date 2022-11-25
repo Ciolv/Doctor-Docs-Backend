@@ -1,10 +1,9 @@
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
 import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
-// import * as fs from "fs";
 
 dotenv.config();
 
@@ -27,6 +26,9 @@ export class Database {
         break;
       case DatabaseUser.EXSTINGUET:
         this.url = process.env.DB_CONN_REPONIT || "";
+        break;
+      default:
+        this.url = "";
         break;
     }
     this.database = database;
@@ -98,7 +100,9 @@ export class Database {
     );
 
     const documents: File[] = [];
+    // skipcq:  JS-0032
     while (await result.hasNext()) {
+      // skipcq:  JS-0032
       const doc = await result.next();
       documents.push((<File>doc
                      ));
