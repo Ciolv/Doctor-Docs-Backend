@@ -68,8 +68,6 @@ export class FileController extends Controller {
       );
     }
 
-    return new Promise((_resolve, reject) => {
-      reject();
-    });
+    return Promise.reject("Could not upload");
   }
 }
