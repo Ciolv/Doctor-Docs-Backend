@@ -88,7 +88,7 @@ export class Database {
     return false;
   }
 
-  async getData(filter: Filter<Record<string, any>>) {
+  async getData(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).findOne(filter);
   }
@@ -108,7 +108,7 @@ export class Database {
     return documents;
   }
 
-  async getMany(filter: Filter<Record<string, any>>) {
+  async getMany(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).find(filter).toArray();
   }
@@ -123,7 +123,7 @@ export class Database {
     return await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
   }
 
-  async deleteData(filter: Filter<Record<string, any>>) {
+  async deleteData(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).deleteOne(filter);
   }
