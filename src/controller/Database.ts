@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
-import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
+import { Filter, FindOptions, MongoClient, ObjectId, UpdateFilter } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
@@ -68,6 +68,7 @@ export class Database {
         ownerId: 1,
         users: 1,
         size: 1,
+        marked: 1,
         lastUpdateTime: 1,
       },
     };
@@ -115,6 +116,11 @@ export class Database {
   async insertData(data: object) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).insertOne(data);
+  }
+
+  async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
+    await this.client.connect();
+    return await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
   }
 
   async deleteData(filter: Filter<Record<string, any>>) {

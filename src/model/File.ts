@@ -10,6 +10,7 @@ export class File {
   size: number;
   lastUpdateTime: Date;
   users: Permission[];
+  marked = false;
 
   constructor(name: string, content: object, parentId: string, ownerId: string, size: number) {
     this.name = name;
