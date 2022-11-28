@@ -90,7 +90,9 @@ export class Database {
 
   async getData(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).findOne(filter);
+    const result = await this.client.db(this.database).collection(this.collection).findOne(filter);
+    await this.close();
+    return result;
   }
 
   async getAllData(filter: Filter<object>, options: FindOptions<object>) {
@@ -104,7 +106,7 @@ export class Database {
       const doc = await result.next();
       documents.push(<File>doc);
     }
-
+    await this.close();
     return documents;
   }
 
@@ -115,17 +117,23 @@ export class Database {
 
   async insertData(data: object) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).insertOne(data);
+    const result = await this.client.db(this.database).collection(this.collection).insertOne(data);
+    await this.close();
+    return result;
   }
 
   async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
+    const result = await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
+    await this.close();
+    return result;
   }
 
   async deleteData(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).deleteOne(filter);
+    const result = await this.client.db(this.database).collection(this.collection).deleteOne(filter);
+    await this.close();
+    return result;
   }
 
   async close() {
