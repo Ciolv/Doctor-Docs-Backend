@@ -7,11 +7,13 @@ import { DatabaseUser } from "../model/DatabaseUser";
 import express from "express";
 import multer from "multer";
 import { Readable } from "stream";
+import { ObjectId } from "mongodb";
 
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
     id: "6371fe0803b918f1869cb865",
+    marked: false,
     name: "Demo Document",
     parentId: "9371fe0803b918f1869cb865",
     content: {},
@@ -31,7 +33,7 @@ export class FileController extends Controller {
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
   writeDatabaseHandler: Database = new Database(DatabaseUser.SCRIBIT, "documents", "files");
   // deleteDatabaseHandler: Database = new Database(DatabaseUser.EXSTINGUET, "documents", "files");
-  // updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
+  updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
@@ -42,6 +44,11 @@ export class FileController extends Controller {
   @Get("")
   public async getAllFiles(@Query() userId: string) {
     return await this.readDatabaseHandler.getAllFiles(userId);
+  }
+
+  @Get("/mark/{fileId}")
+  public async setMark(@Path() fileId: string, @Query() value: boolean) {
+    return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, { $set: { marked: value } });
   }
 
   @Post("upload")

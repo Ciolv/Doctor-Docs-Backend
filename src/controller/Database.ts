@@ -1,6 +1,6 @@
 import { config } from "dotenv";
 import { DatabaseUser } from "../model/DatabaseUser";
-import { Filter, FindOptions, MongoClient, ObjectId } from "mongodb";
+import { Filter, FindOptions, MongoClient, ObjectId, UpdateFilter } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
@@ -68,6 +68,7 @@ export class Database {
         ownerId: 1,
         users: 1,
         size: 1,
+        marked: 1,
         lastUpdateTime: 1,
       },
     };
@@ -87,9 +88,11 @@ export class Database {
     return false;
   }
 
-  async getData(filter: Filter<Record<string, any>>) {
+  async getData(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).findOne(filter);
+    const result = await this.client.db(this.database).collection(this.collection).findOne(filter);
+    await this.close();
+    return result;
   }
 
   async getAllData(filter: Filter<object>, options: FindOptions<object>) {
@@ -103,23 +106,34 @@ export class Database {
       const doc = await result.next();
       documents.push(<File>doc);
     }
-
+    await this.close();
     return documents;
   }
 
-  async getMany(filter: Filter<Record<string, any>>) {
+  async getMany(filter: Filter<Record<string, unknown>>) {
     await this.client.connect();
     return await this.client.db(this.database).collection(this.collection).find(filter).toArray();
   }
 
   async insertData(data: object) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).insertOne(data);
+    const result = await this.client.db(this.database).collection(this.collection).insertOne(data);
+    await this.close();
+    return result;
   }
 
-  async deleteData(filter: Filter<Record<string, any>>) {
+  async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
-    return await this.client.db(this.database).collection(this.collection).deleteOne(filter);
+    const result = await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
+    await this.close();
+    return result;
+  }
+
+  async deleteData(filter: Filter<Record<string, unknown>>) {
+    await this.client.connect();
+    const result = await this.client.db(this.database).collection(this.collection).deleteOne(filter);
+    await this.close();
+    return result;
   }
 
   async close() {
