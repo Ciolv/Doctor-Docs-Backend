@@ -32,7 +32,7 @@ export class FileController extends Controller {
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
   writeDatabaseHandler: Database = new Database(DatabaseUser.SCRIBIT, "documents", "files");
-  // deleteDatabaseHandler: Database = new Database(DatabaseUser.EXSTINGUET, "documents", "files");
+  deleteDatabaseHandler: Database = new Database(DatabaseUser.EXSTINGUET, "documents", "files");
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
 
   @Get("{fileId}")
@@ -49,6 +49,11 @@ export class FileController extends Controller {
   @Get("/mark/{fileId}")
   public async setMark(@Path() fileId: string, @Query() value: boolean) {
     return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, { $set: { marked: value } });
+  }
+
+  @Get("/delete/{fileId}")
+  public async delete(@Path() fileId: string) {
+    return await this.deleteDatabaseHandler.deleteData({ _id: new ObjectId(fileId) });
   }
 
   @Post("upload")
