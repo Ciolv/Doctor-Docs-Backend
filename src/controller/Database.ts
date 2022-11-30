@@ -25,7 +25,7 @@ export class Database {
         this.url = process.env.DB_CONN_REPONIT || "";
         break;
       case DatabaseUser.EXSTINGUET:
-        this.url = process.env.DB_CONN_REPONIT || "";
+        this.url = process.env.DB_CONN_EXSTINGUET || "";
         break;
       default:
         this.url = process.env.DB_CONN_LEGET || "";
