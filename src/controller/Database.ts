@@ -4,6 +4,8 @@ import { Filter, FindOptions, MongoClient, ObjectId, UpdateFilter } from "mongod
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
+import { Patient } from "../model/Patient";
+import { objectDiff } from "../utils/ObjectHelper";
 
 config();
 
@@ -53,6 +55,25 @@ export class Database {
     return new Blob();
   }
 
+  async getUser(userId: string): Promise<Patient> {
+    try {
+      const userObjectId = new ObjectId(userId);
+      const filter = {
+        _id: userObjectId,
+      };
+
+      const user = await this.getData(filter);
+      return user as unknown as Patient;
+    } catch {
+      const filter = {
+        id: userId,
+      };
+
+      const user = await this.getData(filter);
+      return user as unknown as Patient;
+    }
+  }
+
   async getAllFiles(userId: string) {
     const filter = {
       ownerId: userId,
@@ -86,6 +107,37 @@ export class Database {
       return result.insertedId;
     }
     return false;
+  }
+
+  async userExists(userId: string) {
+    const filter = {
+      id: userId,
+    };
+
+    const res = await this.getData(filter);
+    return res !== null ? res._id : null;
+  }
+
+  async updateUser(patient: Patient) {
+    const userId = await this.userExists(patient.id);
+
+    if (userId !== null) {
+      const user = await this.getUser(userId.toString());
+      if (user !== null) {
+        const diff = objectDiff(user, patient);
+        if (diff !== undefined && Object.entries(diff).length !== 0) {
+          const res = await this.updateFile({ _id: userId }, { $set: diff });
+          return { success: res.acknowledged };
+        }
+        // There is no difference in the DB object and the request object
+        return { success: true };
+      }
+    }
+    const res = await this.insertData(patient);
+    return {
+      success: res.acknowledged,
+      id: res.acknowledged ? res.insertedId : "",
+    };
   }
 
   async getData(filter: Filter<Record<string, unknown>>) {

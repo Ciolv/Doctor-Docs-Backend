@@ -27,7 +27,6 @@ export class FileController extends Controller {
   })
 
   // TODO: Get userId from logged in user, as soon as available
-  userId = "637201eed818997609ef5915";
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -57,7 +56,7 @@ export class FileController extends Controller {
   }
 
   @Post("upload")
-  public async uploadFile(@Request() request: express.Request) {
+  public async uploadFile(@Request() request: express.Request, @Query() userId: string) {
     const multerSingle = multer().single("file");
     await new Promise<void>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -75,7 +74,7 @@ export class FileController extends Controller {
         request.file.originalname,
         request.file.size,
         request.file.buffer,
-        this.userId,
+        userId,
         this.parentId
       );
     }
