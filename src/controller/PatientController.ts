@@ -11,52 +11,51 @@ export class PatientController extends Controller {
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "accounts", "users");
 
   @Example<Patient>({
-                      id: "15d37d7a-bd45-49b4-b83c-bd3393c2ca91",
-                      first_name: "Gernot",
-                      last_name: "Hassknecht",
-                      street: "Ehrenfelder Straße",
-                      number: 7,
-                      postcode: 516915,
-                      city: "Köln",
-                      insurance: "BARMER",
-                      insurance_number: "N26815181181585138"
-                    })
+    id: "15d37d7a-bd45-49b4-b83c-bd3393c2ca91",
+    first_name: "Gernot",
+    last_name: "Hassknecht",
+    street: "Ehrenfelder Straße",
+    number: 7,
+    postcode: 516915,
+    city: "Köln",
+    insurance: "BARMER",
+    insurance_number: "N26815181181585138",
+  })
   @Get("{userId}")
   public async getData(@Path() userId: string) {
     return await this.readDatabaseHandler.getUser(userId);
   }
 
-
   @Get("registrationCompleted/{userId}")
   public async userRegistrationCompleted(@Path() userId: string) {
     const user = await this.readDatabaseHandler.getUser(userId);
     if (user === null) {
-      return { "completed": false };
+      return { completed: false };
     }
 
-    const allFieldsSet = user.city !== null &&
-                         user.city !== "" &&
-                         user.first_name !== null &&
-                         user.first_name !== "" &&
-                         user.last_name !== null &&
-                         user.last_name !== "" &&
-                         user.insurance !== null &&
-                         user.insurance !== "" &&
-                         user.insurance_number !== null &&
-                         user.insurance_number !== "" &&
-                         user.postcode !== null &&
-                         user.street !== null &&
-                         user.street !== "" &&
-                         user.number !== null &&
-                         user.id !== null &&
-                         user.id !== "";
+    const allFieldsSet =
+      user.city !== null &&
+      user.city !== "" &&
+      user.first_name !== null &&
+      user.first_name !== "" &&
+      user.last_name !== null &&
+      user.last_name !== "" &&
+      user.insurance !== null &&
+      user.insurance !== "" &&
+      user.insurance_number !== null &&
+      user.insurance_number !== "" &&
+      user.postcode !== null &&
+      user.street !== null &&
+      user.street !== "" &&
+      user.number !== null &&
+      user.id !== null &&
+      user.id !== "";
 
     if (allFieldsSet) {
-      return { "completed": true };
+      return { completed: true };
     }
 
-
-    return { "completed": false };
+    return { completed: false };
   }
 
   @Post("registration")
