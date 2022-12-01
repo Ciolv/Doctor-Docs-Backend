@@ -122,9 +122,9 @@ export class Database {
     const userId = await this.userExists(patient.id);
 
     if (userId !== null) {
-      const u = await this.getUser(userId.toString());
-      if (u !== null) {
-        const diff = objectDiff(u, patient);
+      const user = await this.getUser(userId.toString());
+      if (user !== null) {
+        const diff = objectDiff(user, patient);
         if (diff !== undefined && Object.entries(diff).length !== 0) {
           const res = await this.updateFile({ _id: userId }, { $set: diff });
           return { "success": res.acknowledged };
