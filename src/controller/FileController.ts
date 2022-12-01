@@ -12,22 +12,21 @@ import { ObjectId } from "mongodb";
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
-    id: "6371fe0803b918f1869cb865",
-    marked: false,
-    name: "Demo Document",
-    parentId: "9371fe0803b918f1869cb865",
-    content: {},
-    ownerId: "5371fe0803b918f1869cb865",
-    users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
-    lastUpdateTime: new Date(),
-    size: 500,
-    addUserPermission(): void {
-      return;
-    },
-  })
+                   id: "6371fe0803b918f1869cb865",
+                   marked: false,
+                   name: "Demo Document",
+                   parentId: "9371fe0803b918f1869cb865",
+                   content: {},
+                   ownerId: "5371fe0803b918f1869cb865",
+                   users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
+                   lastUpdateTime: new Date(),
+                   size: 500,
+                   addUserPermission(): void {
+                     return;
+                   }
+                 })
 
-  // TODO: Get userId from logged in user, as soon as available
-  userId = "637201eed818997609ef5915";
+    // TODO: Get userId from logged in user, as soon as available
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -37,7 +36,8 @@ export class FileController extends Controller {
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
-    const file = (await this.readDatabaseHandler.getFile(fileId, userId)) as Buffer;
+    const file = (await this.readDatabaseHandler.getFile(fileId, userId)
+    ) as Buffer;
     return Readable.from(file);
   }
 
@@ -57,7 +57,7 @@ export class FileController extends Controller {
   }
 
   @Post("upload")
-  public async uploadFile(@Request() request: express.Request) {
+  public async uploadFile(@Request() request: express.Request, @Query() userId: string) {
     const multerSingle = multer().single("file");
     await new Promise<void>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -75,7 +75,7 @@ export class FileController extends Controller {
         request.file.originalname,
         request.file.size,
         request.file.buffer,
-        this.userId,
+        userId,
         this.parentId
       );
     }
