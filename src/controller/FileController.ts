@@ -12,21 +12,21 @@ import { ObjectId } from "mongodb";
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
-                   id: "6371fe0803b918f1869cb865",
-                   marked: false,
-                   name: "Demo Document",
-                   parentId: "9371fe0803b918f1869cb865",
-                   content: {},
-                   ownerId: "5371fe0803b918f1869cb865",
-                   users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
-                   lastUpdateTime: new Date(),
-                   size: 500,
-                   addUserPermission(): void {
-                     return;
-                   }
-                 })
+    id: "6371fe0803b918f1869cb865",
+    marked: false,
+    name: "Demo Document",
+    parentId: "9371fe0803b918f1869cb865",
+    content: {},
+    ownerId: "5371fe0803b918f1869cb865",
+    users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
+    lastUpdateTime: new Date(),
+    size: 500,
+    addUserPermission(): void {
+      return;
+    },
+  })
 
-    // TODO: Get userId from logged in user, as soon as available
+  // TODO: Get userId from logged in user, as soon as available
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -36,8 +36,7 @@ export class FileController extends Controller {
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
-    const file = (await this.readDatabaseHandler.getFile(fileId, userId)
-    ) as Buffer;
+    const file = (await this.readDatabaseHandler.getFile(fileId, userId)) as Buffer;
     return Readable.from(file);
   }
 
