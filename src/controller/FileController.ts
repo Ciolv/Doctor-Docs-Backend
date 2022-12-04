@@ -74,7 +74,7 @@ export class FileController extends Controller {
           },
         },
       };
-      return await this.deleteDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
+      return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
     } else {
       // Invalid request - User does not exist under the specified ID
       response.status(500);
