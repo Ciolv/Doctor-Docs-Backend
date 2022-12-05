@@ -4,7 +4,7 @@ import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
-import express, { response } from "express";
+import express from "express";
 import multer from "multer";
 import { Readable } from "stream";
 import { ObjectId, UpdateFilter } from "mongodb";
@@ -77,8 +77,9 @@ export class FileController extends Controller {
       return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
     } else {
       // Invalid request - User does not exist under the specified ID
-      response.status(500);
-      return response.send();
+      console.log("FileController request");
+      this.setStatus(500);
+      return "Invalid Query - No such userId.";
     }
   }
 

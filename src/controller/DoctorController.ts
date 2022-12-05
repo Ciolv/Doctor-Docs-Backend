@@ -34,4 +34,20 @@ export class DoctorController extends Controller {
     this.setHeader("Access-Control-Allow-Origin", "*");
     return doctors;
   }
+
+  @Get("/data/{userId}")
+  public async getDoctorData(@Path() userId: string) {
+    const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+    console.log(userId);
+    const resp = await db.getData({ id: userId });
+    let doc2;
+    if (resp !== null) {
+      doc2 = new Doctor(resp.id, resp.name, resp.street, resp.plz, resp.city);
+      return doc2;
+    } else {
+      console.log("Else-Fall");
+      this.setStatus(500);
+      return "Invalid Query - No such userId.";
+    }
+  }
 }
