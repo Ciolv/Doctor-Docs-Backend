@@ -8,12 +8,14 @@ import { Patient } from "../model/Patient";
 import { objectDiff } from "../utils/ObjectHelper";
 
 config();
+const MAX_FILE_BYTE_SIZE = 419430400; // equals 50 MiB
 
 export class Database {
   url: string;
   database: string;
   collection: string;
   client: MongoClient;
+
 
   constructor(user: DatabaseUser, database: string, collection: string) {
     switch (user) {
@@ -38,12 +40,19 @@ export class Database {
     this.client = new MongoClient(this.url);
   }
 
+  static getUserPermissionFilter(userId: string, permission: FilePermission) {
+    return {
+      "users.userId": userId,
+      "users.permission": { $gte: permission }
+    };
+  }
+
   async getFile(fileId: string, userId: string) {
     const fileObjectId = new ObjectId(fileId);
+    const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
       _id: fileObjectId,
-      "users.userId": userId,
-      "users.permission": { $gte: FilePermission.Read },
+      ...userPermission
     };
 
     const file = await this.getData(filter);
@@ -75,10 +84,10 @@ export class Database {
   }
 
   async getAllFiles(userId: string) {
+    const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
       ownerId: userId,
-      "users.userId": userId,
-      "users.permission": { $gte: FilePermission.Read },
+      ...userPermission
     };
 
     const options = {
@@ -98,8 +107,7 @@ export class Database {
   }
 
   async uploadFile(fileName: string, size: number, buffer: Buffer, userId: string, parentId: string) {
-    const maxFileSize = 5000000000000;
-    if (size < maxFileSize) {
+    if (size < MAX_FILE_BYTE_SIZE) {
       const file = new File(fileName, buffer, parentId, userId, size);
       file.users.push(new Permission(userId, FilePermission.Delete));
 
