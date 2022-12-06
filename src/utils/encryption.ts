@@ -9,7 +9,7 @@ export type EncryptionResult = {
   iv: string;
   authTag: string;
   data: string;
-}
+};
 
 let keyfile = process.env.ENCRYPTION_KEY_PATH;
 let secret;
@@ -38,7 +38,9 @@ function createIv() {
 export function encrypt(data: Buffer): EncryptionResult {
   if (data === undefined || data === null) {
     return {
-      authTag: "", data: "", iv: ""
+      authTag: "",
+      data: "",
+      iv: "",
     };
   }
   const iv = createIv();
@@ -52,9 +54,9 @@ export function encrypt(data: Buffer): EncryptionResult {
   const dataString = encrypted.toString(encryptionEncoding);
 
   return {
-    "iv": ivString,
-    "authTag": authTagString,
-    "data": dataString
+    iv: ivString,
+    authTag: authTagString,
+    data: dataString,
   };
 }
 
