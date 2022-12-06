@@ -220,7 +220,10 @@ export class Database {
 
   async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
-    const result = await this.client.db(this.database).collection(this.collection).updateOne(filter, changes);
+    const result = await this.client
+      .db(this.database)
+      .collection(this.collection)
+      .updateOne(filter, changes, { upsert: true });
     await this.close();
     return result;
   }
