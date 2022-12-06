@@ -26,7 +26,6 @@ export class FileController extends Controller {
                    }
                  })
 
-  // TODO: Get userId from logged in user, as soon as available
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -36,8 +35,14 @@ export class FileController extends Controller {
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
-    const file = (await this.readDatabaseHandler.getFile(fileId, userId)) as Buffer;
-    return Readable.from(file);
+    const response = (await this.readDatabaseHandler.getFile(fileId, userId)
+    );
+    if (response !== null) {
+      const file = response as unknown as Buffer;
+      return Readable.from(file);
+    }
+
+    return Readable.from(Buffer.from(""));
   }
 
   @Get("")

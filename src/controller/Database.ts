@@ -6,7 +6,7 @@ import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 import { Patient } from "../model/Patient";
 import { objectDiff } from "../utils/ObjectHelper";
-import { decrypt, encrypt } from "../utils/encryption";
+import { decrypt, encrypt, EncryptionResult } from "../utils/encryption";
 
 config();
 const MAX_FILE_BYTE_SIZE = 419430400; // equals 50 MiB
@@ -59,30 +59,42 @@ export class Database {
     const file = await this.getData(filter);
 
     if (file !== null) {
-      const fileData = decrypt(file.content);
-      return Buffer.from(fileData);
+      return decrypt(file.content);
     }
 
     return new Blob();
   }
 
   async getUser(userId: string): Promise<Patient> {
+    let user: Patient;
+
     try {
       const userObjectId = new ObjectId(userId);
       const filter = {
-        _id: userObjectId,
+        _id: userObjectId
       };
 
-      const user = await this.getData(filter);
-      return user as unknown as Patient;
+      user = await this.getData(filter) as unknown as Patient;
     } catch {
       const filter = {
-        id: userId,
+        id: userId
       };
 
-      const user = await this.getData(filter);
-      return user as unknown as Patient;
+      user = await this.getData(filter) as unknown as Patient;
     }
+
+    const postcode = decrypt(user.postcode as EncryptionResult);
+    const number = decrypt(user.number as EncryptionResult);
+
+    user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
+    user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
+    user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
+    user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
+    user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
+    user.number = number ? parseInt(number.toString()) : 0;
+    user.postcode = postcode ? parseInt(postcode.toString()) : 0;
+
+    return user;
   }
 
   async getAllFiles(userId: string) {
@@ -101,17 +113,26 @@ export class Database {
         users: 1,
         size: 1,
         marked: 1,
-        lastUpdateTime: 1,
-      },
+        lastUpdateTime: 1
+      }
     };
 
-    return await this.getAllData(filter, options);
+    const files = await this.getAllData(filter, options);
+    for (const file of files) {
+      const name = decrypt(file.name as EncryptionResult)?.toString();
+      if (name !== undefined) {
+        file.name = name;
+      }
+    }
+
+    return files;
   }
 
   async uploadFile(fileName: string, size: number, buffer: Buffer, userId: string, parentId: string) {
     if (size < MAX_FILE_BYTE_SIZE) {
       const fileData = encrypt(buffer);
-      const file = new File(fileName, fileData, parentId, userId, size);
+      const encryptedFileName = encrypt(Buffer.from(fileName));
+      const file = new File(encryptedFileName, fileData, parentId, userId, size);
       file.users.push(new Permission(userId, FilePermission.Delete));
 
       const result = await this.insertData(file);
@@ -122,7 +143,7 @@ export class Database {
 
   async userExists(userId: string) {
     const filter = {
-      id: userId,
+      id: userId
     };
 
     const res = await this.getData(filter);
@@ -137,6 +158,10 @@ export class Database {
       if (user !== null) {
         const diff = objectDiff(user, patient);
         if (diff !== undefined && Object.entries(diff).length !== 0) {
+          for (const diffElement in diff) {
+            // @ts-ignore
+            diff[diffElement] = encrypt(diff[diffElement].toString());
+          }
           const res = await this.updateFile({ _id: userId }, { $set: diff });
           return { success: res.acknowledged };
         }
@@ -144,10 +169,18 @@ export class Database {
         return { success: true };
       }
     }
+    for (const patientKey in patient) {
+      if (patientKey === "id" || patientKey === "insurance_number") {
+        continue;
+      }
+      // @ts-ignore
+      patient[patientKey] = encrypt(patient[patientKey].toString());
+    }
+
     const res = await this.insertData(patient);
     return {
       success: res.acknowledged,
-      id: res.acknowledged ? res.insertedId : "",
+      id: res.acknowledged ? res.insertedId : ""
     };
   }
 

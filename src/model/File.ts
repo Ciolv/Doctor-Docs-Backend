@@ -4,7 +4,7 @@ import { EncryptionResult } from "../utils/encryption";
 
 export class File {
   id = "";
-  name: string;
+  name: EncryptionResult | string;
   content: EncryptionResult;
   parentId: string;
   ownerId: string;
@@ -13,7 +13,11 @@ export class File {
   users: Permission[];
   marked = false;
 
-  constructor(name: string, content: EncryptionResult, parentId: string, ownerId: string, size: number) {
+  constructor(name: EncryptionResult | string,
+              content: EncryptionResult,
+              parentId: string,
+              ownerId: string,
+              size: number) {
     this.name = name;
     this.content = content;
     this.parentId = parentId;

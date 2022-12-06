@@ -35,21 +35,14 @@ export class PatientController extends Controller {
 
     const allFieldsSet =
       user.city !== null &&
-      user.city !== "" &&
       user.first_name !== null &&
-      user.first_name !== "" &&
       user.last_name !== null &&
-      user.last_name !== "" &&
       user.insurance !== null &&
-      user.insurance !== "" &&
       user.insurance_number !== null &&
-      user.insurance_number !== "" &&
       user.postcode !== null &&
       user.street !== null &&
-      user.street !== "" &&
       user.number !== null &&
-      user.id !== null &&
-      user.id !== "";
+      user.id !== null
 
     if (allFieldsSet) {
       return { completed: true };

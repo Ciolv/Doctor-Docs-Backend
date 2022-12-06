@@ -28,6 +28,11 @@ function createIv() {
 }
 
 export function encrypt(data: Buffer): EncryptionResult {
+  if (data === undefined || data === null) {
+    return {
+      authTag: "", data: "", iv: ""
+    };
+  }
   const iv = createIv();
   const cipher = crypto.createCipheriv(algorithm, key, iv);
 
@@ -46,6 +51,10 @@ export function encrypt(data: Buffer): EncryptionResult {
 }
 
 export function decrypt(data: EncryptionResult) {
+  if (data.iv === "" || data.authTag === "" || data.data === "") {
+    return null;
+  }
+
   const iv = Buffer.from(data.iv, encryptionEncoding);
   const encData = Buffer.from(data.data, encryptionEncoding);
   const authTag = Buffer.from(data.authTag, encryptionEncoding);
