@@ -216,3 +216,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+/encryption.key

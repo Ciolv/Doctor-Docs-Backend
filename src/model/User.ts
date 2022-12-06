@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/model/User.ts
 export class User {
   id: string;
   first_name: string;
@@ -23,6 +24,30 @@ export class User {
     approbation?: string,
     verified?: boolean,
     id?: string
+=======
+import { EncryptionResult } from "../utils/encryption";
+
+export class Patient {
+  id = "";
+  first_name: EncryptionResult | string;
+  last_name: EncryptionResult | string;
+  street: EncryptionResult | string;
+  number: EncryptionResult | number;
+  postcode: EncryptionResult | number;
+  city: EncryptionResult | string;
+  insurance_number: string;
+  insurance: EncryptionResult | string;
+
+  constructor(
+    first_name: EncryptionResult | string,
+    last_name: EncryptionResult | string,
+    street: EncryptionResult | string,
+    number: EncryptionResult | number,
+    postcode: EncryptionResult | number,
+    city: EncryptionResult | string,
+    insurance_number: string,
+    insurance: EncryptionResult | string
+>>>>>>> f14824b5395f4de2c7254a193023878b04dccb9b:src/model/Patient.ts
   ) {
     if (id) {
       this.id = id;
