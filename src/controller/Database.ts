@@ -84,11 +84,8 @@ export class Database {
     }
 
     const user = (await this.getData(filter)) as unknown as User;
-    const keys = Object.keys(user);
-    const isApprobationThere = keys.find((element) => {
-      return element === "approbation";
-    });
-    if (isApprobationThere !== undefined && isApprobationThere.length >= 0) {
+
+    if (user.approbation === "") {
       const postcode = decrypt(user.postcode as EncryptionResult);
       const number = decrypt(user.number as EncryptionResult);
 
