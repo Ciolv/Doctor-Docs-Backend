@@ -64,6 +64,12 @@ export class Database {
     return new Blob();
   }
 
+  async deleteFile(fileId: string, userId: string) {
+    const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Delete);
+    const filter = { _id: new ObjectId(fileId), ...userPermissions };
+    return await this.deleteData(filter);
+  }
+
   async getUser(userId: string): Promise<Patient> {
     let user: Patient;
 
@@ -161,7 +167,7 @@ export class Database {
             // @ts-ignore
             diff[diffElement] = encrypt(diff[diffElement].toString());
           }
-          const res = await this.updateFile({ _id: userId }, { $set: diff });
+          const res = await this.updateData({ _id: userId }, { $set: diff });
           return { success: res.acknowledged };
         }
         // There is no difference in the DB object and the request object
@@ -217,7 +223,17 @@ export class Database {
     return result;
   }
 
-  async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
+  async updateFile(fileId: string, changes: UpdateFilter<object>, userId: string) {
+    const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Write);
+    const queryFilter = {
+      _id: new ObjectId(fileId),
+      ...userPermissions,
+    };
+
+    return await this.updateData(queryFilter, changes);
+  }
+
+  async updateData(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
     const result = await this.client
       .db(this.database)
