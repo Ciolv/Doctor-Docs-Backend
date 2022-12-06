@@ -10,6 +10,7 @@ import { Readable } from "stream";
 import { ObjectId, UpdateFilter } from "mongodb";
 
 type PermitBody = {
+  action: "ADD" | "DELETE";
   userId: string;
 };
 
@@ -61,19 +62,33 @@ export class FileController extends Controller {
     return await this.deleteDatabaseHandler.deleteData({ _id: new ObjectId(fileId) });
   }
 
-  @Post("/permit/{fileId}")
+  @Post("/permit/{fileId}/")
   public async permit(@Path() fileId: string, @Body() body: PermitBody) {
     const medExists = await this.readDoctorsHandler.userExists(body.userId);
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
-      const changes: UpdateFilter<File> = {
-        $addToSet: {
-          users: {
-            userId: body.userId,
-            permission: 1,
+      let changes: UpdateFilter<File> = {};
+      if (body.action == "ADD") {
+        changes = {
+          $addToSet: {
+            users: {
+              userId: body.userId,
+              permission: 1,
+            },
           },
-        },
-      };
+        };
+      } else {
+        if (body.action == "DELETE") {
+          changes = {
+            $pull: {
+              users: {
+                userId: body.userId,
+                permission: 1,
+              },
+            },
+          };
+        }
+      }
       return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
     } else {
       // Invalid request - User does not exist under the specified ID
