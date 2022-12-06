@@ -68,7 +68,7 @@ export class FileController extends Controller {
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
       let changes: UpdateFilter<File> = {};
-      if (body.action == "ADD") {
+      if (body.action === "ADD") {
         changes = {
           $addToSet: {
             users: {
@@ -78,7 +78,7 @@ export class FileController extends Controller {
           },
         };
       } else {
-        if (body.action == "DELETE") {
+        if (body.action === "DELETE") {
           changes = {
             $pull: {
               users: {
@@ -90,12 +90,11 @@ export class FileController extends Controller {
         }
       }
       return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
-    } else {
-      // Invalid request - User does not exist under the specified ID
-      console.log("FileController request");
-      this.setStatus(500);
-      return "Invalid Query - No such userId.";
     }
+    // Invalid request - User does not exist under the specified ID
+    console.log("FileController request");
+    this.setStatus(500);
+    return "Invalid Query - No such userId.";
   }
 
   @Post("upload")

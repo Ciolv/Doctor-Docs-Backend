@@ -44,10 +44,9 @@ export class DoctorController extends Controller {
     if (resp !== null) {
       doc2 = new Doctor(resp.id, resp.name, resp.street, resp.plz, resp.city);
       return doc2;
-    } else {
-      console.log("Else-Fall");
-      this.setStatus(500);
-      return "Invalid Query - No such userId.";
     }
+    console.log("Else-Fall");
+    this.setStatus(500);
+    return "Invalid Query - No such userId.";
   }
 }
