@@ -1,6 +1,15 @@
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as process from "process";
+import { config } from "dotenv";
+
+config();
+
+export type EncryptionResult = {
+  iv: string;
+  authTag: string;
+  data: string;
+}
 
 const keyfile = process.env.ENCRYPTION_KEY_PATH;
 if (keyfile === undefined) {
@@ -12,32 +21,39 @@ const key = crypto.createHash("sha256").update(String(secret)).digest();
 
 const algorithm = "aes-256-gcm";
 const ivSize = 16;
-const encoding = "binary";
+const encryptionEncoding = "hex";
 
-export function encrypt(data: string) {
-  const iv = crypto.randomBytes(ivSize);
-  const ivString = iv.toString();
-  const cipher = crypto.createCipheriv(algorithm, key, ivString);
-
-  let encrypted = cipher.update(data, encoding, encoding);
-  encrypted += cipher.final(encoding);
-  encrypted = ivString + encrypted;
-
-  return encrypted;
+function createIv() {
+  return crypto.randomBytes(ivSize);
 }
 
-export function decrypt(data: string) {
-  const iv = data.slice(0, ivSize);
-  const dataBuffer = data.slice(ivSize);
+export function encrypt(data: Buffer): EncryptionResult {
+  const iv = createIv();
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+
+  let encrypted = cipher.update(data);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  const ivString = iv.toString(encryptionEncoding);
+  const authTagString = cipher.getAuthTag().toString(encryptionEncoding);
+  const dataString = encrypted.toString(encryptionEncoding);
+
+  return {
+    "iv": ivString,
+    "authTag": authTagString,
+    "data": dataString
+  };
+}
+
+export function decrypt(data: EncryptionResult) {
+  const iv = Buffer.from(data.iv, encryptionEncoding);
+  const encData = Buffer.from(data.data, encryptionEncoding);
+  const authTag = Buffer.from(data.authTag, encryptionEncoding);
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
+  decipher.setAuthTag(authTag);
 
-  let decrypted = decipher.update(dataBuffer, encoding, encoding);
-  try {
-    decrypted += decipher.final();
-  } catch {
-    console.log("dunno");
-  }
-
+  let decrypted = decipher.update(encData);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
 
   return decrypted;
 }
