@@ -1,4 +1,4 @@
-import { Controller, Example, Get, Path, Post, Query, Request, Route } from "tsoa";
+import { Body, Controller, Example, Get, Path, Post, Query, Request, Route } from "tsoa";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
@@ -7,7 +7,12 @@ import { DatabaseUser } from "../model/DatabaseUser";
 import express from "express";
 import multer from "multer";
 import { Readable } from "stream";
-import { ObjectId } from "mongodb";
+import { ObjectId, UpdateFilter } from "mongodb";
+
+type PermitBody = {
+  action: "ADD" | "DELETE";
+  userId: string;
+};
 
 @Route("files")
 export class FileController extends Controller {
@@ -34,6 +39,8 @@ export class FileController extends Controller {
   deleteDatabaseHandler: Database = new Database(DatabaseUser.EXSTINGUET, "documents", "files");
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
 
+  readDoctorsHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
     const file = (await this.readDatabaseHandler.getFile(fileId, userId)) as Buffer;
@@ -53,6 +60,41 @@ export class FileController extends Controller {
   @Get("/delete/{fileId}")
   public async delete(@Path() fileId: string) {
     return await this.deleteDatabaseHandler.deleteData({ _id: new ObjectId(fileId) });
+  }
+
+  @Post("/permit/{fileId}/")
+  public async permit(@Path() fileId: string, @Body() body: PermitBody) {
+    const medExists = await this.readDoctorsHandler.userExists(body.userId);
+    if (medExists !== null) {
+      // Medical User Exists and can be added to file permission
+      let changes: UpdateFilter<File> = {};
+      if (body.action === "ADD") {
+        changes = {
+          $addToSet: {
+            users: {
+              userId: body.userId,
+              permission: 1,
+            },
+          },
+        };
+      } else {
+        if (body.action === "DELETE") {
+          changes = {
+            $pull: {
+              users: {
+                userId: body.userId,
+                permission: 1,
+              },
+            },
+          };
+        }
+      }
+      return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
+    }
+    // Invalid request - User does not exist under the specified ID
+    console.log("FileController request");
+    this.setStatus(500);
+    return "Invalid Query - No such userId.";
   }
 
   @Post("upload")
