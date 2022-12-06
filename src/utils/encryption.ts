@@ -1,6 +1,6 @@
-import * as crypto from "crypto";
-import * as fs from "fs";
-import * as process from "process";
+import crypto from "crypto";
+import fs from "fs";
+import process from "process";
 import { config } from "dotenv";
 
 config();
@@ -11,7 +11,9 @@ export type EncryptionResult = {
   data: string;
 };
 
-let keyfile = process.env.ENCRYPTION_KEY_PATH;
+const keyfile = process.env.ENCRYPTION_KEY_PATH;
+// Could not assign secret in if block, when secret is const -> false positive
+// skipcq: JS-0242
 let secret;
 
 if (process.env.CI === "true") {
@@ -25,7 +27,7 @@ if (process.env.CI === "true") {
   secret = fs.readFileSync(keyfile, "binary");
 }
 
-let key = crypto.createHash("sha256").update(String(secret)).digest();
+const key = crypto.createHash("sha256").update(String(secret)).digest();
 
 const algorithm = "aes-256-gcm";
 const ivSize = 16;
