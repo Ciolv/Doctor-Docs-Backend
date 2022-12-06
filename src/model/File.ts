@@ -13,11 +13,13 @@ export class File {
   users: Permission[];
   marked = false;
 
-  constructor(name: EncryptionResult | string,
-              content: EncryptionResult,
-              parentId: string,
-              ownerId: string,
-              size: number) {
+  constructor(
+    name: EncryptionResult | string,
+    content: EncryptionResult,
+    parentId: string,
+    ownerId: string,
+    size: number
+  ) {
     this.name = name;
     this.content = content;
     this.parentId = parentId;

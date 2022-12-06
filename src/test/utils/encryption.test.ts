@@ -18,7 +18,6 @@ describe("Encryption", () => {
   });
 
   test("Verify encrypted data can be successfully decrypted", () => {
-
     const encrypted = encrypt(input);
     const decrypted = decrypt(encrypted);
     expect(decrypted === input);

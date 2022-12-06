@@ -42,7 +42,7 @@ export class PatientController extends Controller {
       user.postcode !== null &&
       user.street !== null &&
       user.number !== null &&
-      user.id !== null
+      user.id !== null;
 
     if (allFieldsSet) {
       return { completed: true };
