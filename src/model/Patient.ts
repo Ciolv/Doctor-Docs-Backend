@@ -1,23 +1,25 @@
+import { EncryptionResult } from "../utils/encryption";
+
 export class Patient {
   id = "";
-  first_name: string;
-  last_name: string;
-  street: string;
-  number: number;
-  postcode: number;
-  city: string;
+  first_name: EncryptionResult | string;
+  last_name: EncryptionResult | string;
+  street: EncryptionResult | string;
+  number: EncryptionResult | number;
+  postcode: EncryptionResult | number;
+  city: EncryptionResult | string;
   insurance_number: string;
-  insurance: string;
+  insurance: EncryptionResult | string;
 
   constructor(
-    first_name: string,
-    last_name: string,
-    street: string,
-    number: number,
-    postcode: number,
-    city: string,
+    first_name: EncryptionResult | string,
+    last_name: EncryptionResult | string,
+    street: EncryptionResult | string,
+    number: EncryptionResult | number,
+    postcode: EncryptionResult | number,
+    city: EncryptionResult | string,
     insurance_number: string,
-    insurance: string
+    insurance: EncryptionResult | string
   ) {
     this.first_name = first_name;
     this.last_name = last_name;
