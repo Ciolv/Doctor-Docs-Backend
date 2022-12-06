@@ -9,7 +9,7 @@ export function objectDiff(a: unknown, b: unknown) {
   const diff = {};
   const jsonA = JSON.parse(JSON.stringify(a));
   const jsonB = JSON.parse(JSON.stringify(b));
-  for (const element in jsonA) {
+  for (const element of Object.keys(jsonA)) {
     if (element === "_id") {
       continue;
     }

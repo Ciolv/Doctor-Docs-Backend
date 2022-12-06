@@ -157,7 +157,7 @@ export class Database {
       if (user !== null) {
         const diff = objectDiff(user, patient);
         if (diff !== undefined && Object.entries(diff).length !== 0) {
-          for (const diffElement in diff) {
+          for (const diffElement of Object.keys(diff)) {
             // @ts-ignore
             diff[diffElement] = encrypt(diff[diffElement].toString());
           }
@@ -168,7 +168,7 @@ export class Database {
         return { success: true };
       }
     }
-    for (const patientKey in patient) {
+    for (const patientKey of Object.keys(patient)) {
       if (patientKey === "id" || patientKey === "insurance_number") {
         continue;
       }
