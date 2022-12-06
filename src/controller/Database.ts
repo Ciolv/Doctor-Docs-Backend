@@ -6,6 +6,7 @@ import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 import { Patient } from "../model/Patient";
 import { objectDiff } from "../utils/ObjectHelper";
+import { decrypt, encrypt } from "../utils/encryption";
 
 config();
 const MAX_FILE_BYTE_SIZE = 419430400; // equals 50 MiB
@@ -58,7 +59,8 @@ export class Database {
     const file = await this.getData(filter);
 
     if (file !== null) {
-      return file.content.buffer as Buffer;
+      const fileData = decrypt(file.content);
+      return Buffer.from(fileData);
     }
 
     return new Blob();
@@ -108,7 +110,8 @@ export class Database {
 
   async uploadFile(fileName: string, size: number, buffer: Buffer, userId: string, parentId: string) {
     if (size < MAX_FILE_BYTE_SIZE) {
-      const file = new File(fileName, buffer, parentId, userId, size);
+      const fileData = encrypt(buffer);
+      const file = new File(fileName, fileData, parentId, userId, size);
       file.users.push(new Permission(userId, FilePermission.Delete));
 
       const result = await this.insertData(file);

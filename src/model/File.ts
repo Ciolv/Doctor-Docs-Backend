@@ -1,10 +1,11 @@
 import { Permission } from "./Permission";
 import { FilePermission } from "./FilePermission";
+import { EncryptionResult } from "../utils/encryption";
 
 export class File {
   id = "";
   name: string;
-  content: object;
+  content: EncryptionResult;
   parentId: string;
   ownerId: string;
   size: number;
@@ -12,7 +13,7 @@ export class File {
   users: Permission[];
   marked = false;
 
-  constructor(name: string, content: object, parentId: string, ownerId: string, size: number) {
+  constructor(name: string, content: EncryptionResult, parentId: string, ownerId: string, size: number) {
     this.name = name;
     this.content = content;
     this.parentId = parentId;
