@@ -64,55 +64,42 @@ export class Database {
     return new Blob();
   }
 
-<<<<<<< HEAD
-  async getUser(userId: string): Promise<User> {
-=======
   async deleteFile(fileId: string, userId: string) {
     const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Delete);
     const filter = { _id: new ObjectId(fileId), ...userPermissions };
     return await this.deleteData(filter);
   }
 
-  async getUser(userId: string): Promise<Patient> {
-    let user: Patient;
-
->>>>>>> f14824b5395f4de2c7254a193023878b04dccb9b
+  async getUser(userId: string): Promise<User> {
+    let filter;
     try {
       const userObjectId = new ObjectId(userId);
-      const filter = {
+      filter = {
         _id: userObjectId,
       };
-
-<<<<<<< HEAD
-      const user = await this.getData(filter);
-      return user as unknown as User;
-=======
-      user = (await this.getData(filter)) as unknown as Patient;
->>>>>>> f14824b5395f4de2c7254a193023878b04dccb9b
     } catch {
-      const filter = {
+      filter = {
         id: userId,
       };
-
-<<<<<<< HEAD
-      const user = await this.getData(filter);
-      return user as unknown as User;
-=======
-      user = (await this.getData(filter)) as unknown as Patient;
->>>>>>> f14824b5395f4de2c7254a193023878b04dccb9b
     }
 
-    const postcode = decrypt(user.postcode as EncryptionResult);
-    const number = decrypt(user.number as EncryptionResult);
+    const user = (await this.getData(filter)) as unknown as User;
+    const keys = Object.keys(user);
+    const isApprobationThere = keys.find((element) => {
+      return element === "approbation";
+    });
+    if (isApprobationThere !== undefined && isApprobationThere.length >= 0) {
+      const postcode = decrypt(user.postcode as EncryptionResult);
+      const number = decrypt(user.number as EncryptionResult);
 
-    user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
-    user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
-    user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
-    user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
-    user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
-    user.number = number ? parseInt(number.toString()) : 0;
-    user.postcode = postcode ? parseInt(postcode.toString()) : 0;
-
+      user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
+      user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
+      user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
+      user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
+      user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
+      user.number = number ? parseInt(number.toString()) : 0;
+      user.postcode = postcode ? parseInt(postcode.toString()) : 0;
+    }
     return user;
   }
 
@@ -178,6 +165,7 @@ export class Database {
         const diff = objectDiff(user, patient);
         if (diff !== undefined && Object.entries(diff).length !== 0) {
           for (const diffElement of Object.keys(diff)) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             diff[diffElement] = encrypt(diff[diffElement].toString());
           }
@@ -189,9 +177,15 @@ export class Database {
       }
     }
     for (const patientKey of Object.keys(patient)) {
-      if (patientKey === "id" || patientKey === "insurance_number") {
+      if (
+        patientKey === "id" ||
+        patientKey === "insurance_number" ||
+        patientKey === "approbation" ||
+        patientKey === "verified"
+      ) {
         continue;
       }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       patient[patientKey] = encrypt(patient[patientKey].toString());
     }
