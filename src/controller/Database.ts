@@ -43,7 +43,7 @@ export class Database {
   static getUserPermissionFilter(userId: string, permission: FilePermission) {
     return {
       "users.userId": userId,
-      "users.permission": { $gte: permission },
+      "users.permission": { $gte: permission }
     };
   }
 
@@ -52,7 +52,7 @@ export class Database {
     const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
       _id: fileObjectId,
-      ...userPermission,
+      ...userPermission
     };
 
     const file = await this.getData(filter);
@@ -64,22 +64,32 @@ export class Database {
     return new Blob();
   }
 
+  async deleteFile(fileId: string, userId: string) {
+    const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Delete);
+    const filter = { _id: new ObjectId(fileId), ...userPermissions };
+    return await this.deleteData(filter);
+  }
+
   async getUser(userId: string): Promise<Patient> {
     let user: Patient;
 
     try {
       const userObjectId = new ObjectId(userId);
       const filter = {
-        _id: userObjectId,
+        _id: userObjectId
       };
 
-      user = (await this.getData(filter)) as unknown as Patient;
+      user =
+        (await this.getData(filter)
+        ) as unknown as Patient;
     } catch {
       const filter = {
-        id: userId,
+        id: userId
       };
 
-      user = (await this.getData(filter)) as unknown as Patient;
+      user =
+        (await this.getData(filter)
+        ) as unknown as Patient;
     }
 
     const postcode = decrypt(user.postcode as EncryptionResult);
@@ -100,7 +110,7 @@ export class Database {
     const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
       ownerId: userId,
-      ...userPermission,
+      ...userPermission
     };
 
     const options = {
@@ -112,8 +122,8 @@ export class Database {
         users: 1,
         size: 1,
         marked: 1,
-        lastUpdateTime: 1,
-      },
+        lastUpdateTime: 1
+      }
     };
 
     const files = await this.getAllData(filter, options);
@@ -142,7 +152,7 @@ export class Database {
 
   async userExists(userId: string) {
     const filter = {
-      id: userId,
+      id: userId
     };
 
     const res = await this.getData(filter);
@@ -161,7 +171,7 @@ export class Database {
             // @ts-ignore
             diff[diffElement] = encrypt(diff[diffElement].toString());
           }
-          const res = await this.updateFile({ _id: userId }, { $set: diff });
+          const res = await this.updateData({ _id: userId }, { $set: diff });
           return { success: res.acknowledged };
         }
         // There is no difference in the DB object and the request object
@@ -179,7 +189,7 @@ export class Database {
     const res = await this.insertData(patient);
     return {
       success: res.acknowledged,
-      id: res.acknowledged ? res.insertedId : "",
+      id: res.acknowledged ? res.insertedId : ""
     };
   }
 
@@ -217,7 +227,17 @@ export class Database {
     return result;
   }
 
-  async updateFile(filter: Filter<object>, changes: UpdateFilter<object>) {
+  async updateFile(fileId: string, changes: UpdateFilter<object>, userId: string) {
+    const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Write);
+    const queryFilter = {
+      _id: new ObjectId(fileId),
+      ...userPermissions
+    };
+
+    return await this.updateData(queryFilter, changes);
+  }
+
+  async updateData(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
     const result = await this.client
       .db(this.database)

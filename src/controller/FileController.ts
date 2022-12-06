@@ -7,7 +7,7 @@ import { DatabaseUser } from "../model/DatabaseUser";
 import express from "express";
 import multer from "multer";
 import { Readable } from "stream";
-import { ObjectId, UpdateFilter } from "mongodb";
+import { UpdateFilter } from "mongodb";
 
 type PermitBody = {
   action: "ADD" | "DELETE";
@@ -17,19 +17,19 @@ type PermitBody = {
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
-    id: "6371fe0803b918f1869cb865",
-    marked: false,
-    name: "Demo Document",
-    parentId: "9371fe0803b918f1869cb865",
-    content: { iv: "", authTag: "", data: "" },
-    ownerId: "5371fe0803b918f1869cb865",
-    users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
-    lastUpdateTime: new Date(),
-    size: 500,
-    addUserPermission(): void {
-      return;
-    },
-  })
+                   id: "6371fe0803b918f1869cb865",
+                   marked: false,
+                   name: "Demo Document",
+                   parentId: "9371fe0803b918f1869cb865",
+                   content: { iv: "", authTag: "", data: "" },
+                   ownerId: "5371fe0803b918f1869cb865",
+                   users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
+                   lastUpdateTime: new Date(),
+                   size: 500,
+                   addUserPermission(): void {
+                     return;
+                   }
+                 })
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -56,43 +56,43 @@ export class FileController extends Controller {
   }
 
   @Get("/mark/{fileId}")
-  public async setMark(@Path() fileId: string, @Query() value: boolean) {
-    return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, { $set: { marked: value } });
+  public async setMark(@Path() fileId: string, @Query() value: boolean, @Query() userId: string) {
+    return await this.updateDatabaseHandler.updateFile(fileId, { $set: { marked: value } }, userId);
   }
 
   @Get("/delete/{fileId}")
-  public async delete(@Path() fileId: string) {
-    return await this.deleteDatabaseHandler.deleteData({ _id: new ObjectId(fileId) });
+  public async delete(@Path() fileId: string, @Query() userId: string) {
+    return await this.deleteDatabaseHandler.deleteFile(fileId, userId);
   }
 
   @Post("/permit/{fileId}/")
-  public async permit(@Path() fileId: string, @Body() body: PermitBody) {
+  public async permit(@Path() fileId: string, @Body() body: PermitBody, @Query() userId: string) {
     const medExists = await this.readDoctorsHandler.userExists(body.userId);
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
       let changes: UpdateFilter<File> = {};
+      const permissionField = {
+        users: {
+          userId: body.userId,
+          permission: FilePermission.Read
+        }
+      };
       if (body.action === "ADD") {
         changes = {
           $addToSet: {
-            users: {
-              userId: body.userId,
-              permission: 1,
-            },
-          },
+            ...permissionField
+          }
         };
       } else {
         if (body.action === "DELETE") {
           changes = {
             $pull: {
-              users: {
-                userId: body.userId,
-                permission: 1,
-              },
-            },
+              ...permissionField
+            }
           };
         }
       }
-      return await this.updateDatabaseHandler.updateFile({ _id: new ObjectId(fileId) }, changes);
+      return await this.updateDatabaseHandler.updateFile(fileId, changes, userId);
     }
     // Invalid request - User does not exist under the specified ID
     console.log("FileController request");
