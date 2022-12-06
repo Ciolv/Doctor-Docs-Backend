@@ -4,7 +4,7 @@ import { Filter, FindOptions, MongoClient, ObjectId, UpdateFilter } from "mongod
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
-import { Patient } from "../model/Patient";
+import { User } from "../model/User";
 import { objectDiff } from "../utils/ObjectHelper";
 
 config();
@@ -55,7 +55,7 @@ export class Database {
     return new Blob();
   }
 
-  async getUser(userId: string): Promise<Patient> {
+  async getUser(userId: string): Promise<User> {
     try {
       const userObjectId = new ObjectId(userId);
       const filter = {
@@ -63,14 +63,14 @@ export class Database {
       };
 
       const user = await this.getData(filter);
-      return user as unknown as Patient;
+      return user as unknown as User;
     } catch {
       const filter = {
         id: userId,
       };
 
       const user = await this.getData(filter);
-      return user as unknown as Patient;
+      return user as unknown as User;
     }
   }
 
@@ -118,7 +118,7 @@ export class Database {
     return res !== null ? res._id : null;
   }
 
-  async updateUser(patient: Patient) {
+  async updateUser(patient: User) {
     const userId = await this.userExists(patient.id);
 
     if (userId !== null) {

@@ -3,6 +3,7 @@ import { Doctor } from "../model/Doctor";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
 import { ObjectId } from "mongodb";
+import { User } from "../model/User";
 
 @Route("doctors")
 export class DoctorController extends Controller {
@@ -18,15 +19,21 @@ export class DoctorController extends Controller {
     const re = new RegExp(`\\w*${searchTerm}\\w*`);
     console.log(re);
     const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
-    const doctors: Doctor[] = [];
-    await db.getMany({ name: re }).then((result) => {
+    const doctors: User[] = [];
+    await db.getMany({ $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }] }).then((result) => {
       result.forEach((element) => {
-        const doctor: Doctor = new Doctor(
-          element["id"],
-          element["name"],
+        const doctor: User = new User(
+          element["first_name"],
+          element["last_name"],
           element["street"],
-          element["plz"],
-          element["city"]
+          element["number"],
+          element["postcode"],
+          element["city"],
+          undefined,
+          undefined,
+          element["approbation"],
+          element["verified"],
+          element["id"]
         );
         doctors.push(doctor);
       });
@@ -42,7 +49,19 @@ export class DoctorController extends Controller {
     const resp = await db.getData({ id: userId });
     let doc2;
     if (resp !== null) {
-      doc2 = new Doctor(resp.id, resp.name, resp.street, resp.plz, resp.city);
+      doc2 = new User(
+        resp.first_name,
+        resp.last_name,
+        resp.street,
+        resp.number,
+        resp.postcode,
+        resp.city,
+        undefined,
+        undefined,
+        resp.approbation,
+        resp.verified,
+        resp.id
+      );
       return doc2;
     }
     console.log("Else-Fall");
