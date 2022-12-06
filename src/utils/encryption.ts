@@ -11,13 +11,21 @@ export type EncryptionResult = {
   data: string;
 }
 
-const keyfile = process.env.ENCRYPTION_KEY_PATH;
-if (keyfile === undefined) {
-  console.log("Can not perform encryption or decryption without a key file.");
-  process.exit(1);
+let keyfile = process.env.ENCRYPTION_KEY_PATH;
+let secret;
+
+if (process.env.CI === "true") {
+  console.log("No encryption for CI/CD pipeline");
+  secret = "";
+} else {
+  if (keyfile === undefined) {
+    console.log("Can not perform encryption or decryption without a key file.");
+    process.exit(1);
+  }
+  secret = fs.readFileSync(keyfile, "binary");
 }
-const secret = fs.readFileSync(keyfile, "binary");
-const key = crypto.createHash("sha256").update(String(secret)).digest();
+
+let key = crypto.createHash("sha256").update(String(secret)).digest();
 
 const algorithm = "aes-256-gcm";
 const ivSize = 16;
