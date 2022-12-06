@@ -12,6 +12,8 @@ export type EncryptionResult = {
 };
 
 let keyfile = process.env.ENCRYPTION_KEY_PATH;
+// Could not assign secret in if block, when secret is const -> false positive
+// skipcq: JS-0242
 let secret;
 
 if (process.env.CI === "true") {
@@ -25,7 +27,7 @@ if (process.env.CI === "true") {
   secret = fs.readFileSync(keyfile, "binary");
 }
 
-let key = crypto.createHash("sha256").update(String(secret)).digest();
+const key = crypto.createHash("sha256").update(String(secret)).digest();
 
 const algorithm = "aes-256-gcm";
 const ivSize = 16;
