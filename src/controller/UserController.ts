@@ -27,7 +27,7 @@ export class UserController extends Controller {
   @Get("{userId}")
   public async getData(@Path() userId: string) {
     const user = await this.readDatabaseHandler.getUser(userId);
-    if (user !== null) {
+    if (typeof user !== "boolean") {
       return user;
     }
     return await this.readDoctorDatabaseHandler.getUser(userId);
@@ -36,9 +36,9 @@ export class UserController extends Controller {
   @Get("registrationCompleted/{userId}")
   public async userRegistrationCompleted(@Path() userId: string) {
     let user = await this.readDatabaseHandler.getUser(userId);
-    if (user === null) {
+    if (typeof user === "boolean") {
       user = await this.readDoctorDatabaseHandler.getUser(userId);
-      if (user === null) {
+      if (typeof user === "boolean") {
         return { completed: false };
       }
     }
