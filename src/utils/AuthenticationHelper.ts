@@ -9,16 +9,16 @@ type MsJwtPayload = JwtPayload & {
   // name: string,
   // preferred_username: string,
   // tid: string
-  oid: string
+  oid: string;
 };
 
 const validationOptions = {
   audience: process.env.AZURE_CLIENT_ID ?? "",
-  issuer: process.env.AZURE_TENANT_AUTHORITY ?? ""
+  issuer: process.env.AZURE_TENANT_AUTHORITY ?? "",
 };
 
 export async function getUserId(token: string): Promise<string> {
-  if (!await AuthenticationIsValid(token)) {
+  if (!(await AuthenticationIsValid(token))) {
     return "";
   }
 
@@ -50,12 +50,11 @@ export async function AuthenticationIsValid(token: string): Promise<boolean> {
   return false;
 }
 
-
 async function getSigningKeys(kid: string) {
   const uri = process.env.AZURE_DISCOVERY_KEYS_ENDPOINT ?? "";
   const client = jwksClient({
-                              jwksUri: uri
-                            });
+    jwksUri: uri,
+  });
 
   const key = await client.getSigningKey(kid);
   return key.getPublicKey();
