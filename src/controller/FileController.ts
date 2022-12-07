@@ -8,10 +8,12 @@ import express from "express";
 import multer from "multer";
 import { Readable } from "stream";
 import { UpdateFilter } from "mongodb";
+import { User } from "../model/User";
 
 type PermitBody = {
   action: "ADD" | "DELETE";
   userId: string;
+  role: "DOCTOR" | "PATIENT";
 };
 
 @Route("files")
@@ -38,6 +40,7 @@ export class FileController extends Controller {
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
 
   readDoctorsHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+  readUsersHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "users");
 
   @Get("{fileId}")
   public async getFile(@Path() fileId: string, @Query() userId: string) {
@@ -66,14 +69,29 @@ export class FileController extends Controller {
   }
 
   @Post("/permit/{fileId}/")
-  public async permit(@Path() fileId: string, @Body() body: PermitBody, @Query() userId: string) {
-    const medExists = await this.readDoctorsHandler.userExists(body.userId);
+  public async permit(@Path() fileId: string, @Body() body: PermitBody) {
+    let userIdVar;
+    let medExists;
+    if (body.role === "DOCTOR") {
+      userIdVar = body.userId;
+      medExists = await this.readDoctorsHandler.userExists(userIdVar);
+    } else {
+      let user;
+      if (body.action === "ADD") {
+        user = (await this.readUsersHandler.getData({ insurance_number: body.userId })) as unknown as User;
+      } else {
+        user = (await this.readUsersHandler.getData({ id: body.userId })) as unknown as User;
+      }
+      userIdVar = user.id;
+      medExists = await this.readUsersHandler.userExists(userIdVar);
+    }
+
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
       let changes: UpdateFilter<File> = {};
       const permissionField = {
         users: {
-          userId: body.userId,
+          userId: userIdVar,
           permission: FilePermission.Read,
         },
       };
@@ -92,12 +110,13 @@ export class FileController extends Controller {
           };
         }
       }
-      return await this.updateDatabaseHandler.updateFile(fileId, changes, userId);
+      console.log(changes);
+      return await this.updateDatabaseHandler.updateFile(fileId, changes, userIdVar);
     }
     // Invalid request - User does not exist under the specified ID
     console.log("FileController request");
     this.setStatus(500);
-    return "Invalid Query - No such userId.";
+    return "Invalid Query - No such userIdVar.";
   }
 
   @Post("upload")

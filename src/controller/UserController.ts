@@ -2,6 +2,7 @@ import { Body, Controller, Example, Get, Path, Post, Route } from "tsoa";
 import { User } from "../model/User";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
+import { Filter } from "mongodb";
 
 @Route("users")
 export class UserController extends Controller {
@@ -31,6 +32,13 @@ export class UserController extends Controller {
       return user;
     }
     return await this.readDoctorDatabaseHandler.getUser(userId);
+  }
+
+  @Get("/search/{insNumber}")
+  public async searchForInsNumber(@Path() insNumber: string) {
+    const filter: Filter<User> = { insurance_number: insNumber };
+    const result = await this.readDatabaseHandler.getData(filter);
+    return result !== null;
   }
 
   @Get("registrationCompleted/{userId}")
