@@ -17,18 +17,15 @@ const validationOptions = {
   issuer: process.env.AZURE_TENANT_AUTHORITY ?? ""
 };
 
-export async function getUserId(token: string): Promise<string> {
-  if (!await AuthenticationIsValid(token)) {
-    return "";
-  }
 
-  const decoded = decode(token, { complete: true });
-  if (!decoded?.payload) {
-    return "";
-  }
+async function getSigningKeys(kid: string) {
+  const uri = process.env.AZURE_DISCOVERY_KEYS_ENDPOINT ?? "";
+  const client = jwksClient({
+                              jwksUri: uri
+                            });
 
-  const payload = decoded.payload as MsJwtPayload;
-  return payload.oid;
+  const key = await client.getSigningKey(kid);
+  return key.getPublicKey();
 }
 
 export async function AuthenticationIsValid(token: string): Promise<boolean> {
@@ -51,12 +48,18 @@ export async function AuthenticationIsValid(token: string): Promise<boolean> {
 }
 
 
-async function getSigningKeys(kid: string) {
-  const uri = process.env.AZURE_DISCOVERY_KEYS_ENDPOINT ?? "";
-  const client = jwksClient({
-                              jwksUri: uri
-                            });
+export async function getUserId(token: string): Promise<string> {
+  if (!await AuthenticationIsValid(token)) {
+    return "";
+  }
 
-  const key = await client.getSigningKey(kid);
-  return key.getPublicKey();
+  const decoded = decode(token, { complete: true });
+  if (!decoded?.payload) {
+    return "";
+  }
+
+  // Quality check can be skipped, since MsJwtPayload extends JwtPayload by the oid field
+  // skipcq: JS-0349
+  const payload = decoded.payload as MsJwtPayload;
+  return payload.oid;
 }
