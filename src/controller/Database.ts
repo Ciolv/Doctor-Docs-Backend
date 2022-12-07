@@ -82,7 +82,9 @@ export class Database {
         id: userId,
       };
     }
+
     const user = (await this.getData(filter)) as unknown as User;
+
     if (user !== null) {
       if (user.approbation === "") {
         const postcode = decrypt(user.postcode as EncryptionResult);
@@ -96,8 +98,10 @@ export class Database {
         user.number = number ? parseInt(number.toString()) : 0;
         user.postcode = postcode ? parseInt(postcode.toString()) : 0;
       }
+
       return user;
     }
+
     return false;
   }
 
@@ -175,13 +179,15 @@ export class Database {
         return { success: true };
       }
     }
-    for (const patientKey of Object.keys(patient)) {
-      if (patientKey === "id" || patientKey === "insurance_number" || patient.approbation !== "") {
-        continue;
+    if (patient.approbation === "") {
+      for (const patientKey of Object.keys(patient)) {
+        if (patientKey === "id" || patientKey === "insurance_number" || patient.approbation !== "") {
+          continue;
+        }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        patient[patientKey] = encrypt(patient[patientKey].toString());
       }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      patient[patientKey] = encrypt(patient[patientKey].toString());
     }
 
     const res = await this.insertData(patient);
