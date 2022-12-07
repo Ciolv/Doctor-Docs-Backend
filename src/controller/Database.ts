@@ -43,7 +43,7 @@ export class Database {
   static getUserPermissionFilter(userId: string, permission: FilePermission) {
     return {
       "users.userId": userId,
-      "users.permission": { $gte: permission },
+      "users.permission": { $gte: permission }
     };
   }
 
@@ -52,7 +52,7 @@ export class Database {
     const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
       _id: fileObjectId,
-      ...userPermission,
+      ...userPermission
     };
 
     const file = await this.getData(filter);
@@ -75,14 +75,17 @@ export class Database {
     try {
       const userObjectId = new ObjectId(userId);
       filter = {
-        _id: userObjectId,
+        _id: userObjectId
       };
     } catch {
       filter = {
-        id: userId,
+        id: userId
       };
     }
-    const user = (await this.getData(filter)) as unknown as User;
+
+    const user = (await this.getData(filter)
+    ) as unknown as User;
+
     if (user !== null) {
       if (user.approbation === "") {
         const postcode = decrypt(user.postcode as EncryptionResult);
@@ -96,15 +99,17 @@ export class Database {
         user.number = number ? parseInt(number.toString()) : 0;
         user.postcode = postcode ? parseInt(postcode.toString()) : 0;
       }
+
       return user;
     }
+
     return false;
   }
 
   async getAllFiles(userId: string) {
     const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
-      ...userPermission,
+      ...userPermission
     };
 
     const options = {
@@ -116,8 +121,8 @@ export class Database {
         users: 1,
         size: 1,
         marked: 1,
-        lastUpdateTime: 1,
-      },
+        lastUpdateTime: 1
+      }
     };
 
     const files = await this.getAllData(filter, options);
@@ -146,7 +151,7 @@ export class Database {
 
   async userExists(userId: string) {
     const filter = {
-      id: userId,
+      id: userId
     };
 
     const res = await this.getData(filter);
@@ -175,19 +180,21 @@ export class Database {
         return { success: true };
       }
     }
-    for (const patientKey of Object.keys(patient)) {
-      if (patientKey === "id" || patientKey === "insurance_number" || patient.approbation !== "") {
-        continue;
+    if (patient.approbation === "") {
+      for (const patientKey of Object.keys(patient)) {
+        if (patientKey === "id" || patientKey === "insurance_number" || patient.approbation !== "") {
+          continue;
+        }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        patient[patientKey] = encrypt(patient[patientKey].toString());
       }
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      patient[patientKey] = encrypt(patient[patientKey].toString());
     }
 
     const res = await this.insertData(patient);
     return {
       success: res.acknowledged,
-      id: res.acknowledged ? res.insertedId : "",
+      id: res.acknowledged ? res.insertedId : ""
     };
   }
 
@@ -229,7 +236,7 @@ export class Database {
     const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Write);
     const queryFilter = {
       _id: new ObjectId(fileId),
-      ...userPermissions,
+      ...userPermissions
     };
 
     return await this.updateData(queryFilter, changes);

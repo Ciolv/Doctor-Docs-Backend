@@ -1,7 +1,9 @@
-import { Body, Controller, Example, Get, Path, Post, Route } from "tsoa";
+import { Body, Controller, Example, Post, Route } from "tsoa";
 import { User } from "../model/User";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
+import { AuthenticationBody } from "../model/Authentication";
+import { getUserId } from "../utils/AuthenticationHelper";
 
 @Route("users")
 export class UserController extends Controller {
@@ -24,17 +26,26 @@ export class UserController extends Controller {
     insurance_number: "N26815181181585138",
     approbation: "Regierungspräsidium Stuttgart",
   })
-  @Get("{userId}")
-  public async getData(@Path() userId: string) {
+  @Post("")
+  public async getData(@Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     const user = await this.readDatabaseHandler.getUser(userId);
-    if (typeof user !== "boolean") {
+    if (user !== false) {
       return user;
     }
-    return await this.readDoctorDatabaseHandler.getUser(userId);
+    const doctor = await this.readDoctorDatabaseHandler.getUser(userId);
+    return doctor;
   }
 
-  @Get("registrationCompleted/{userId}")
-  public async userRegistrationCompleted(@Path() userId: string) {
+  @Post("registrationCompleted")
+  public async userRegistrationCompleted(@Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     let user = await this.readDatabaseHandler.getUser(userId);
     if (typeof user === "boolean") {
       user = await this.readDoctorDatabaseHandler.getUser(userId);
