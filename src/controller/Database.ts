@@ -70,7 +70,7 @@ export class Database {
     return await this.deleteData(filter);
   }
 
-  async getUser(userId: string): Promise<User> {
+  async getUser(userId: string): Promise<User | boolean> {
     let filter;
     try {
       const userObjectId = new ObjectId(userId);
@@ -82,28 +82,29 @@ export class Database {
         id: userId,
       };
     }
-
     const user = (await this.getData(filter)) as unknown as User;
+    if (user !== null) {
+      if (user.approbation === "") {
+        const postcode = decrypt(user.postcode as EncryptionResult);
+        const number = decrypt(user.number as EncryptionResult);
 
-    if (user.approbation === "") {
-      const postcode = decrypt(user.postcode as EncryptionResult);
-      const number = decrypt(user.number as EncryptionResult);
-
-      user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
-      user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
-      user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
-      user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
-      user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
-      user.number = number ? parseInt(number.toString()) : 0;
-      user.postcode = postcode ? parseInt(postcode.toString()) : 0;
+        user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
+        user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
+        user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
+        user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
+        user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
+        user.number = number ? parseInt(number.toString()) : 0;
+        user.postcode = postcode ? parseInt(postcode.toString()) : 0;
+      }
+      return user;
+    } else {
+      return false;
     }
-    return user;
   }
 
   async getAllFiles(userId: string) {
     const userPermission = Database.getUserPermissionFilter(userId, FilePermission.Read);
     const filter = {
-      ownerId: userId,
       ...userPermission,
     };
 
@@ -162,9 +163,11 @@ export class Database {
         const diff = objectDiff(user, patient);
         if (diff !== undefined && Object.entries(diff).length !== 0) {
           for (const diffElement of Object.keys(diff)) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            diff[diffElement] = encrypt(diff[diffElement].toString());
+            if (patient.approbation === "") {
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              diff[diffElement] = encrypt(diff[diffElement].toString());
+            }
           }
           const res = await this.updateData({ _id: userId }, { $set: diff });
           return { success: res.acknowledged };
@@ -174,12 +177,7 @@ export class Database {
       }
     }
     for (const patientKey of Object.keys(patient)) {
-      if (
-        patientKey === "id" ||
-        patientKey === "insurance_number" ||
-        patientKey === "approbation" ||
-        patientKey === "verified"
-      ) {
+      if (patientKey === "id" || patientKey === "insurance_number" || patient.approbation !== "") {
         continue;
       }
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
