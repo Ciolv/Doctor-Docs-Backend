@@ -97,9 +97,8 @@ export class Database {
         user.postcode = postcode ? parseInt(postcode.toString()) : 0;
       }
       return user;
-    } else {
-      return false;
     }
+    return false;
   }
 
   async getAllFiles(userId: string) {
