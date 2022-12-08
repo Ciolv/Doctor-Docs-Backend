@@ -1,5 +1,6 @@
 import { Body, Controller, Example, Path, Post, Query, Route, UploadedFile, FormField } from "tsoa";
 import { File } from "../model/File";
+import { User } from "../model/User";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 import { Database } from "./Database";
@@ -12,6 +13,7 @@ import { AuthenticationBody } from "../model/Authentication";
 type PermitBody = AuthenticationBody & {
   action: "ADD" | "DELETE";
   userId: string;
+  role: "DOCTOR" | "PATIENT";
 };
 
 @Route("files")
@@ -38,6 +40,7 @@ export class FileController extends Controller {
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "documents", "files");
 
   readDoctorsHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+  readUsersHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "users");
 
   @Post("get/{fileId}")
   public async getFile(@Path() fileId: string, @Body() body: AuthenticationBody) {
@@ -88,17 +91,31 @@ export class FileController extends Controller {
 
   @Post("/permit/{fileId}/")
   public async permit(@Path() fileId: string, @Body() body: PermitBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
+    const loggedInUserId = await getUserId(body.jwt);
+    if (loggedInUserId === "") {
       return null;
     }
-    const medExists = await this.readDoctorsHandler.userExists(body.userId);
+    let userIdVar;
+    let medExists;
+    if (body.role === "DOCTOR") {
+      userIdVar = body.userId;
+      medExists = await this.readDoctorsHandler.userExists(userIdVar);
+    } else {
+      let user;
+      if (body.action === "ADD") {
+        user = (await this.readUsersHandler.getData({ insurance_number: body.userId })) as unknown as User;
+      } else {
+        user = (await this.readUsersHandler.getData({ id: body.userId })) as unknown as User;
+      }
+      userIdVar = user.id;
+      medExists = await this.readUsersHandler.userExists(userIdVar);
+    }
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
       let changes: UpdateFilter<File> = {};
       const permissionField = {
         users: {
-          userId: body.userId,
+          userId: userIdVar,
           permission: FilePermission.Read,
         },
       };
@@ -117,7 +134,7 @@ export class FileController extends Controller {
           };
         }
       }
-      return await this.updateDatabaseHandler.updateFile(fileId, changes, userId);
+      return await this.updateDatabaseHandler.updateFile(fileId, changes, loggedInUserId);
     }
     // Invalid request - User does not exist under the specified ID
     this.setStatus(500);

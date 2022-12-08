@@ -1,7 +1,8 @@
-import { Body, Controller, Example, Post, Route } from "tsoa";
+import { Body, Controller, Path, Example, Post, Route } from "tsoa";
 import { User } from "../model/User";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
+import { Filter } from "mongodb";
 import { AuthenticationBody } from "../model/Authentication";
 import { getUserId } from "../utils/AuthenticationHelper";
 
@@ -36,8 +37,18 @@ export class UserController extends Controller {
     if (user !== false) {
       return user;
     }
-    const doctor = await this.readDoctorDatabaseHandler.getUser(userId);
-    return doctor;
+    return await this.readDoctorDatabaseHandler.getUser(userId);
+  }
+
+  @Post("/search/{insNumber}")
+  public async searchForInsNumber(@Path() insNumber: string, @Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
+    const filter: Filter<User> = { insurance_number: insNumber };
+    const result = await this.readDatabaseHandler.getData(filter);
+    return result !== null;
   }
 
   @Post("registrationCompleted")
