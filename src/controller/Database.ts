@@ -43,7 +43,7 @@ export class Database {
     return {
       users: {
         $elemMatch: {
-          userId: userId,
+          userId,
           permission: { $gte: permission },
         },
       },
