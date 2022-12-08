@@ -208,7 +208,6 @@ export class FileController extends Controller {
         return "No file selected";
       }
 
-
       Logger.info(`User ${userId} uploaded a new file`);
       this.setStatus(200);
       return await this.writeDatabaseHandler.uploadFile(
