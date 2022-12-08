@@ -3,7 +3,6 @@ import { DatabaseUser } from "../model/DatabaseUser";
 import { Filter, FindOptions, MongoClient, ObjectId, UpdateFilter } from "mongodb";
 import { File } from "../model/File";
 import { FilePermission } from "../model/FilePermission";
-import { Permission } from "../model/Permission";
 import { User } from "../model/User";
 import { objectDiff } from "../utils/ObjectHelper";
 import { decrypt, encrypt, EncryptionResult } from "../utils/encryption";
@@ -140,7 +139,6 @@ export class Database {
       const fileData = encrypt(buffer);
       const encryptedFileName = encrypt(Buffer.from(fileName));
       const file = new File(encryptedFileName, fileData, parentId, userId, size);
-      file.users.push(new Permission(userId, FilePermission.Delete));
 
       const result = await this.insertData(file);
       return result.insertedId;
