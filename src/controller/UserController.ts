@@ -16,17 +16,17 @@ export class UserController extends Controller {
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "accounts", "users");
 
   @Example<User>({
-                   id: "15d37d7a-bd45-49b4-b83c-bd3393c2ca91",
-                   first_name: "Gernot",
-                   last_name: "Hassknecht",
-                   street: "Ehrenfelder Straße",
-                   number: 7,
-                   postcode: 516915,
-                   city: "Köln",
-                   insurance: "BARMER",
-                   insurance_number: "N26815181181585138",
-                   approbation: "Regierungspräsidium Stuttgart"
-                 })
+    id: "15d37d7a-bd45-49b4-b83c-bd3393c2ca91",
+    first_name: "Gernot",
+    last_name: "Hassknecht",
+    street: "Ehrenfelder Straße",
+    number: 7,
+    postcode: 516915,
+    city: "Köln",
+    insurance: "BARMER",
+    insurance_number: "N26815181181585138",
+    approbation: "Regierungspräsidium Stuttgart",
+  })
   @Post("")
   public async getData(@Body() body: AuthenticationBody) {
     try {
@@ -100,10 +100,8 @@ export class UserController extends Controller {
         user.first_name !== null &&
         user.last_name !== null &&
         user.insurance !== null &&
-        ((user.insurance !== "" && user.insurance_number !== null && user.insurance_number !== ""
-         ) ||
-         user.approbation !== ""
-        ) &&
+        ((user.insurance !== "" && user.insurance_number !== null && user.insurance_number !== "") ||
+          user.approbation !== "") &&
         user.postcode !== null &&
         user.street !== null &&
         user.number !== null &&
