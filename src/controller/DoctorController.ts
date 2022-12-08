@@ -11,12 +11,12 @@ import { Logger } from "../utils/Log";
 @Route("doctors")
 export class DoctorController extends Controller {
   @Example<Doctor>({
-                     id: new ObjectId(12),
-                     name: "Dr. med. Jonas Fabian Pohle",
-                     street: "Haardtstraße 16",
-                     plz: 68163,
-                     city: "Mannheim"
-                   })
+    id: new ObjectId(12),
+    name: "Dr. med. Jonas Fabian Pohle",
+    street: "Haardtstraße 16",
+    plz: 68163,
+    city: "Mannheim",
+  })
   @Post("{searchTerm}")
   public async getDoctors(@Path() searchTerm: string, @Body() body: AuthenticationBody) {
     try {
@@ -32,8 +32,8 @@ export class DoctorController extends Controller {
       const doctors: User[] = [];
       await db
         .getMany({
-                   $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }]
-                 })
+          $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }],
+        })
         .then((result) => {
           result.forEach((element) => {
             const doctor: User = new User(
