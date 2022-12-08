@@ -20,19 +20,19 @@ type PermitBody = AuthenticationBody & {
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
-                   id: "6371fe0803b918f1869cb865",
-                   marked: false,
-                   name: "Demo Document",
-                   parentId: "9371fe0803b918f1869cb865",
-                   content: { iv: "", authTag: "", data: "" },
-                   ownerId: "5371fe0803b918f1869cb865",
-                   users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
-                   lastUpdateTime: new Date(),
-                   size: 500,
-                   addUserPermission(): void {
-                     return;
-                   }
-                 })
+    id: "6371fe0803b918f1869cb865",
+    marked: false,
+    name: "Demo Document",
+    parentId: "9371fe0803b918f1869cb865",
+    content: { iv: "", authTag: "", data: "" },
+    ownerId: "5371fe0803b918f1869cb865",
+    users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
+    lastUpdateTime: new Date(),
+    size: 500,
+    addUserPermission(): void {
+      return;
+    },
+  })
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -130,7 +130,7 @@ export class FileController extends Controller {
           return updateResult;
         } else {
           Logger.warning(`Could not delete file or permission for user ${userId} and file ${fileId}`);
-          this.setStatus(500)
+          this.setStatus(500);
           return "Could not modify the given file";
         }
       } else {
@@ -161,13 +161,9 @@ export class FileController extends Controller {
       } else {
         let user;
         if (body.action === "ADD") {
-          user =
-            (await this.readUsersHandler.getData({ insurance_number: body.userId })
-            ) as unknown as User;
+          user = (await this.readUsersHandler.getData({ insurance_number: body.userId })) as unknown as User;
         } else {
-          user =
-            (await this.readUsersHandler.getData({ id: body.userId })
-            ) as unknown as User;
+          user = (await this.readUsersHandler.getData({ id: body.userId })) as unknown as User;
         }
         userIdVar = user.id;
         medExists = await this.readUsersHandler.userExists(userIdVar);
@@ -178,21 +174,21 @@ export class FileController extends Controller {
         const permissionField = {
           users: {
             userId: userIdVar,
-            permission: FilePermission.Read
-          }
+            permission: FilePermission.Read,
+          },
         };
         if (body.action === "ADD") {
           changes = {
             $addToSet: {
-              ...permissionField
-            }
+              ...permissionField,
+            },
           };
         } else {
           if (body.action === "DELETE") {
             changes = {
               $pull: {
-                ...permissionField
-              }
+                ...permissionField,
+              },
             };
           }
         }
