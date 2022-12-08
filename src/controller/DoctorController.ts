@@ -60,8 +60,8 @@ export class DoctorController extends Controller {
         resp.number,
         resp.postcode,
         resp.city,
-        undefined,
-        undefined,
+        resp.insurance_number,
+        resp.insurance,
         resp.approbation,
         resp.verified,
         resp.id
