@@ -1,16 +1,16 @@
-import { Body, Controller, Example, Get, Path, Post, Query, Request, Route } from "tsoa";
+import { Body, Controller, Example, Path, Post, Query, Route, UploadedFile, FormField } from "tsoa";
 import { File } from "../model/File";
+import { User } from "../model/User";
 import { FilePermission } from "../model/FilePermission";
 import { Permission } from "../model/Permission";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
-import express from "express";
-import multer from "multer";
 import { Readable } from "stream";
-import { UpdateFilter } from "mongodb";
-import { User } from "../model/User";
+import { ObjectId, UpdateFilter } from "mongodb";
+import { AuthenticationIsValid, getUserId } from "../utils/AuthenticationHelper";
+import { AuthenticationBody } from "../model/Authentication";
 
-type PermitBody = {
+type PermitBody = AuthenticationBody & {
   action: "ADD" | "DELETE";
   userId: string;
   role: "DOCTOR" | "PATIENT";
@@ -42,34 +42,59 @@ export class FileController extends Controller {
   readDoctorsHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
   readUsersHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "users");
 
-  @Get("{fileId}")
-  public async getFile(@Path() fileId: string, @Query() userId: string) {
+  @Post("get/{fileId}")
+  public async getFile(@Path() fileId: string, @Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     const response = await this.readDatabaseHandler.getFile(fileId, userId);
     if (response !== null) {
       const file = response as unknown as Buffer;
       return Readable.from(file);
     }
 
-    return Readable.from(Buffer.from(""));
+    return null;
   }
 
-  @Get("")
-  public async getAllFiles(@Query() userId: string) {
-    return await this.readDatabaseHandler.getAllFiles(userId);
+  @Post("")
+  public async getAllFiles(@Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
+
+    if (await AuthenticationIsValid(body.jwt)) {
+      return await this.readDatabaseHandler.getAllFiles(userId);
+    }
+
+    return null;
   }
 
-  @Get("/mark/{fileId}")
-  public async setMark(@Path() fileId: string, @Query() value: boolean, @Query() userId: string) {
+  @Post("/mark/{fileId}")
+  public async setMark(@Path() fileId: string, @Query() value: boolean, @Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     return await this.updateDatabaseHandler.updateFile(fileId, { $set: { marked: value } }, userId);
   }
 
-  @Get("/delete/{fileId}")
-  public async delete(@Path() fileId: string, @Query() userId: string) {
+  @Post("/delete/{fileId}")
+  public async delete(@Path() fileId: string, @Body() body: AuthenticationBody) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     return await this.deleteDatabaseHandler.deleteFile(fileId, userId);
   }
 
   @Post("/permit/{fileId}/")
   public async permit(@Path() fileId: string, @Body() body: PermitBody) {
+    const loggedInUserId = await getUserId(body.jwt);
+    if (loggedInUserId === "") {
+      return null;
+    }
     let userIdVar;
     let medExists;
     if (body.role === "DOCTOR") {
@@ -85,7 +110,6 @@ export class FileController extends Controller {
       userIdVar = user.id;
       medExists = await this.readUsersHandler.userExists(userIdVar);
     }
-
     if (medExists !== null) {
       // Medical User Exists and can be added to file permission
       let changes: UpdateFilter<File> = {};
@@ -110,39 +134,29 @@ export class FileController extends Controller {
           };
         }
       }
-      console.log(changes);
-      return await this.updateDatabaseHandler.updateFile(fileId, changes, userIdVar);
+      return await this.updateDatabaseHandler.updateFile(fileId, changes, loggedInUserId);
     }
     // Invalid request - User does not exist under the specified ID
-    console.log("FileController request");
     this.setStatus(500);
-    return "Invalid Query - No such userIdVar.";
+    return "Invalid Query - No such userId.";
   }
 
   @Post("upload")
-  public async uploadFile(@Request() request: express.Request, @Query() userId: string) {
-    const multerSingle = multer().single("file");
-    await new Promise<void>((resolve, reject) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      multerSingle(request, undefined, (error) => {
-        if (error) {
-          reject(error);
-        }
-        resolve();
-      });
-    });
-
-    if (request.file !== undefined) {
+  public async uploadFile(
+    @FormField() jwt: string,
+    @UploadedFile() file: Express.Multer.File
+  ): Promise<boolean | ObjectId> {
+    const userId = await getUserId(jwt);
+    if (userId !== "" && file !== undefined) {
       return await this.writeDatabaseHandler.uploadFile(
-        request.file.originalname,
-        request.file.size,
-        request.file.buffer,
+        file.originalname,
+        file.size,
+        file.buffer,
         userId,
         this.parentId
       );
     }
 
-    return Promise.reject(new Error("Could not upload"));
+    return false;
   }
 }

@@ -1,9 +1,11 @@
-import { Controller, Example, Get, Path, Route } from "tsoa";
+import { Body, Controller, Example, Get, Path, Post, Route } from "tsoa";
 import { Doctor } from "../model/Doctor";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
 import { ObjectId } from "mongodb";
 import { User } from "../model/User";
+import { AuthenticationBody } from "../model/Authentication";
+import { getUserId } from "../utils/AuthenticationHelper";
 
 @Route("doctors")
 export class DoctorController extends Controller {
@@ -17,7 +19,6 @@ export class DoctorController extends Controller {
   @Get("{searchTerm}")
   public async getDoctors(@Path() searchTerm: string) {
     const re = new RegExp(`\\w*${searchTerm}\\w*`);
-    console.log(re);
     const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
     const doctors: User[] = [];
     await db.getMany({ $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }] }).then((result) => {
@@ -42,11 +43,14 @@ export class DoctorController extends Controller {
     return doctors;
   }
 
-  @Get("/data/{userId}")
-  public async getDoctorData(@Path() userId: string) {
+  @Post("/data/{doctorId}")
+  public async getDoctorData(@Body() body: AuthenticationBody, @Path() doctorId: string) {
+    const userId = await getUserId(body.jwt);
+    if (userId === "") {
+      return null;
+    }
     const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
-    console.log(userId);
-    const resp = await db.getData({ id: userId });
+    const resp = await db.getData({ id: doctorId });
     let doc2;
     if (resp !== null) {
       doc2 = new User(
@@ -64,8 +68,8 @@ export class DoctorController extends Controller {
       );
       return doc2;
     }
-    console.log("Else-Fall");
-    this.setStatus(500);
+
+    this.setStatus(404);
     return "Invalid Query - No such userId.";
   }
 }
