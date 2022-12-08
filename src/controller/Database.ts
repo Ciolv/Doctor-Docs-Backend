@@ -243,6 +243,25 @@ export class Database {
     return await this.updateData(queryFilter, changes);
   }
 
+  async removeReadPermission(fileId: string, userId: string) {
+    const userPermissions = Database.getUserPermissionFilter(userId, FilePermission.Read);
+    const queryFilter = {
+      _id: new ObjectId(fileId),
+      ...userPermissions,
+    };
+
+    const changes = {
+      $pull: {
+        users: {
+          userId,
+          permission: FilePermission.Read
+        }
+      }
+    }
+
+    return await this.updateData(queryFilter, changes);
+  }
+
   async updateData(filter: Filter<object>, changes: UpdateFilter<object>) {
     await this.client.connect();
     const result = await this.client
