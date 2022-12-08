@@ -254,10 +254,10 @@ export class Database {
       $pull: {
         users: {
           userId,
-          permission: FilePermission.Read
-        }
-      }
-    }
+          permission: FilePermission.Read,
+        },
+      },
+    };
 
     return await this.updateData(queryFilter, changes);
   }
