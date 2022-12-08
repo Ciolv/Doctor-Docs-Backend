@@ -6,8 +6,8 @@ import { Permission } from "../model/Permission";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
 import { Readable } from "stream";
-import { ObjectId, UpdateFilter } from "mongodb";
-import { AuthenticationIsValid, getUserId } from "../utils/AuthenticationHelper";
+import { UpdateFilter } from "mongodb";
+import { getUserId } from "../utils/AuthenticationHelper";
 import { AuthenticationBody } from "../model/Authentication";
 
 type PermitBody = AuthenticationBody & {
@@ -19,19 +19,19 @@ type PermitBody = AuthenticationBody & {
 @Route("files")
 export class FileController extends Controller {
   @Example<File>({
-    id: "6371fe0803b918f1869cb865",
-    marked: false,
-    name: "Demo Document",
-    parentId: "9371fe0803b918f1869cb865",
-    content: { iv: "", authTag: "", data: "" },
-    ownerId: "5371fe0803b918f1869cb865",
-    users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
-    lastUpdateTime: new Date(),
-    size: 500,
-    addUserPermission(): void {
-      return;
-    },
-  })
+                   id: "6371fe0803b918f1869cb865",
+                   marked: false,
+                   name: "Demo Document",
+                   parentId: "9371fe0803b918f1869cb865",
+                   content: { iv: "", authTag: "", data: "" },
+                   ownerId: "5371fe0803b918f1869cb865",
+                   users: [new Permission("3371fe0803b918f1869cb865", FilePermission.Delete)],
+                   lastUpdateTime: new Date(),
+                   size: 500,
+                   addUserPermission(): void {
+                     return;
+                   }
+                 })
   parentId = "";
 
   readDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "documents", "files");
@@ -44,110 +44,166 @@ export class FileController extends Controller {
 
   @Post("get/{fileId}")
   public async getFile(@Path() fileId: string, @Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
-    }
-    const response = await this.readDatabaseHandler.getFile(fileId, userId);
-    if (response !== null) {
-      const file = response as unknown as Buffer;
-      return Readable.from(file);
-    }
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
 
-    return null;
+      const response = await this.readDatabaseHandler.getFile(fileId, userId);
+      if (response !== null) {
+        const file = response as unknown as Buffer;
+        this.setStatus(200);
+        return Readable.from(file);
+      }
+
+      this.setStatus(404);
+      return "File not found";
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
+    }
   }
 
   @Post("")
   public async getAllFiles(@Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
-    }
-
-    if (await AuthenticationIsValid(body.jwt)) {
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
+      this.setStatus(200);
       return await this.readDatabaseHandler.getAllFiles(userId);
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-
-    return null;
   }
 
   @Post("/mark/{fileId}")
   public async setMark(@Path() fileId: string, @Query() value: boolean, @Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
+
+      this.setStatus(200);
+      return await this.updateDatabaseHandler.updateFile(fileId, { $set: { marked: value } }, userId);
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    return await this.updateDatabaseHandler.updateFile(fileId, { $set: { marked: value } }, userId);
   }
 
   @Post("/delete/{fileId}")
   public async delete(@Path() fileId: string, @Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
+
+      this.setStatus(204);
+      return await this.deleteDatabaseHandler.deleteFile(fileId, userId);
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    return await this.deleteDatabaseHandler.deleteFile(fileId, userId);
   }
 
   @Post("/permit/{fileId}/")
   public async permit(@Path() fileId: string, @Body() body: PermitBody) {
-    const loggedInUserId = await getUserId(body.jwt);
-    if (loggedInUserId === "") {
-      return null;
-    }
-    let userIdVar;
-    let medExists;
-    if (body.role === "DOCTOR") {
-      userIdVar = body.userId;
-      medExists = await this.readDoctorsHandler.userExists(userIdVar);
-    } else {
-      let user;
-      if (body.action === "ADD") {
-        user = (await this.readUsersHandler.getData({ insurance_number: body.userId })) as unknown as User;
-      } else {
-        user = (await this.readUsersHandler.getData({ id: body.userId })) as unknown as User;
+    try {
+      const loggedInUserId = await getUserId(body.jwt);
+      if (loggedInUserId === "") {
+        this.setStatus(403);
+        return;
       }
-      userIdVar = user.id;
-      medExists = await this.readUsersHandler.userExists(userIdVar);
-    }
-    if (medExists !== null) {
-      // Medical User Exists and can be added to file permission
-      let changes: UpdateFilter<File> = {};
-      const permissionField = {
-        users: {
-          userId: userIdVar,
-          permission: FilePermission.Read,
-        },
-      };
-      if (body.action === "ADD") {
-        changes = {
-          $addToSet: {
-            ...permissionField,
-          },
-        };
+
+      let userIdVar;
+      let medExists;
+      if (body.role === "DOCTOR") {
+        userIdVar = body.userId;
+        medExists = await this.readDoctorsHandler.userExists(userIdVar);
       } else {
-        if (body.action === "DELETE") {
-          changes = {
-            $pull: {
-              ...permissionField,
-            },
-          };
+        let user;
+        if (body.action === "ADD") {
+          user =
+            (await this.readUsersHandler.getData({ insurance_number: body.userId })
+            ) as unknown as User;
+        } else {
+          user =
+            (await this.readUsersHandler.getData({ id: body.userId })
+            ) as unknown as User;
         }
+        userIdVar = user.id;
+        medExists = await this.readUsersHandler.userExists(userIdVar);
       }
-      return await this.updateDatabaseHandler.updateFile(fileId, changes, loggedInUserId);
+      if (medExists !== null) {
+        // Medical User Exists and can be added to file permission
+        let changes: UpdateFilter<File> = {};
+        const permissionField = {
+          users: {
+            userId: userIdVar,
+            permission: FilePermission.Read
+          }
+        };
+        if (body.action === "ADD") {
+          changes = {
+            $addToSet: {
+              ...permissionField
+            }
+          };
+        } else {
+          if (body.action === "DELETE") {
+            changes = {
+              $pull: {
+                ...permissionField
+              }
+            };
+          }
+        }
+
+        this.setStatus(200);
+        return await this.updateDatabaseHandler.updateFile(fileId, changes, loggedInUserId);
+      }
+      // Invalid request - User does not exist under the specified ID
+      this.setStatus(404);
+      return "Invalid Query - No such userId.";
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    // Invalid request - User does not exist under the specified ID
-    this.setStatus(500);
-    return "Invalid Query - No such userId.";
   }
 
   @Post("upload")
   public async uploadFile(
     @FormField() jwt: string,
     @UploadedFile() file: Express.Multer.File
-  ): Promise<boolean | ObjectId> {
-    const userId = await getUserId(jwt);
-    if (userId !== "" && file !== undefined) {
+  ) {
+    try {
+      const userId = await getUserId(jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
+
+      if (file === undefined) {
+        this.setStatus(404);
+        return "No file selected";
+      }
+
+      this.setStatus(200);
       return await this.writeDatabaseHandler.uploadFile(
         file.originalname,
         file.size,
@@ -155,8 +211,10 @@ export class FileController extends Controller {
         userId,
         this.parentId
       );
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-
-    return false;
   }
 }
