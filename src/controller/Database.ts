@@ -42,8 +42,12 @@ export class Database {
 
   static getUserPermissionFilter(userId: string, permission: FilePermission) {
     return {
-      "users.userId": userId,
-      "users.permission": { $gte: permission },
+      users: {
+        $elemMatch: {
+          userId: userId,
+          permission: { $gte: permission },
+        },
+      },
     };
   }
 
