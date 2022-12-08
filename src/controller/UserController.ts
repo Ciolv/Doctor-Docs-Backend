@@ -29,66 +29,110 @@ export class UserController extends Controller {
   })
   @Post("")
   public async getData(@Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
-    }
-    const user = await this.readDatabaseHandler.getUser(userId);
-    if (user !== false) {
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
+      }
+
+      let user = await this.readDatabaseHandler.getUser(userId);
+      if (user === false) {
+        user = await this.readDoctorDatabaseHandler.getUser(userId);
+      }
+
+      if (user === null) {
+        this.setStatus(404);
+        return "User not found";
+      }
+
+      this.setStatus(200);
       return user;
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    return await this.readDoctorDatabaseHandler.getUser(userId);
   }
 
   @Post("/search/{insNumber}")
   public async searchForInsNumber(@Path() insNumber: string, @Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return null;
+      }
+
+      const filter: Filter<User> = { insurance_number: insNumber };
+      const result = await this.readDatabaseHandler.getData(filter);
+      const userExists = result !== null;
+
+      this.setStatus(200);
+      return userExists;
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    const filter: Filter<User> = { insurance_number: insNumber };
-    const result = await this.readDatabaseHandler.getData(filter);
-    return result !== null;
   }
 
   @Post("registrationCompleted")
   public async userRegistrationCompleted(@Body() body: AuthenticationBody) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
-    }
-    let user = await this.readDatabaseHandler.getUser(userId);
-    if (typeof user === "boolean") {
-      user = await this.readDoctorDatabaseHandler.getUser(userId);
-      if (typeof user === "boolean") {
-        return { completed: false };
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        this.setStatus(403);
+        return;
       }
+
+      let user = await this.readDatabaseHandler.getUser(userId);
+      if (typeof user === "boolean") {
+        user = await this.readDoctorDatabaseHandler.getUser(userId);
+        if (typeof user === "boolean") {
+          this.setStatus(200);
+          return { completed: false };
+        }
+      }
+
+      const allFieldsSet =
+        user.city !== null &&
+        user.first_name !== null &&
+        user.last_name !== null &&
+        user.insurance !== null &&
+        ((user.insurance !== "" && user.insurance_number !== null && user.insurance_number !== "") ||
+          user.approbation !== "") &&
+        user.postcode !== null &&
+        user.street !== null &&
+        user.number !== null &&
+        user.id !== null;
+
+      if (allFieldsSet) {
+        this.setStatus(200);
+        return { completed: true };
+      }
+
+      this.setStatus(200);
+      return { completed: false };
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-
-    const allFieldsSet =
-      user.city !== null &&
-      user.first_name !== null &&
-      user.last_name !== null &&
-      user.insurance !== null &&
-      ((user.insurance !== "" && user.insurance_number !== null && user.insurance_number !== "") ||
-        user.approbation !== "") &&
-      user.postcode !== null &&
-      user.street !== null &&
-      user.number !== null &&
-      user.id !== null;
-
-    if (allFieldsSet) {
-      return { completed: true };
-    }
-
-    return { completed: false };
   }
 
   @Post("registration")
   public async userRegistration(@Body() requestBody: User) {
-    if (requestBody.approbation === "") {
-      return await this.writeDatabaseHandler.updateUser(requestBody);
+    try {
+      this.setStatus(200);
+      if (requestBody.approbation === "") {
+        return await this.writeDatabaseHandler.updateUser(requestBody);
+      }
+      return await this.writeDoctorDatabaseHandler.updateUser(requestBody);
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
     }
-    return await this.writeDoctorDatabaseHandler.updateUser(requestBody);
   }
 }

@@ -18,58 +18,74 @@ export class DoctorController extends Controller {
   })
   @Get("{searchTerm}")
   public async getDoctors(@Path() searchTerm: string) {
-    const re = new RegExp(`\\w*${searchTerm}\\w*`);
-    const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
-    const doctors: User[] = [];
-    await db.getMany({ $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }] }).then((result) => {
-      result.forEach((element) => {
-        const doctor: User = new User(
-          element["first_name"],
-          element["last_name"],
-          element["street"],
-          element["number"],
-          element["postcode"],
-          element["city"],
-          undefined,
-          undefined,
-          element["approbation"],
-          element["verified"],
-          element["id"]
-        );
-        doctors.push(doctor);
-      });
-    });
-    this.setHeader("Access-Control-Allow-Origin", "*");
-    return doctors;
+    try {
+      const re = new RegExp(`\\w*${searchTerm}\\w*`);
+      const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+      const doctors: User[] = [];
+      await db
+        .getMany({
+          $or: [{ first_name: re }, { last_name: re }, { street: re }, { city: re }],
+        })
+        .then((result) => {
+          result.forEach((element) => {
+            const doctor: User = new User(
+              element["first_name"],
+              element["last_name"],
+              element["street"],
+              element["number"],
+              element["postcode"],
+              element["city"],
+              undefined,
+              undefined,
+              element["approbation"],
+              element["verified"],
+              element["id"]
+            );
+            doctors.push(doctor);
+          });
+        });
+      this.setHeader("Access-Control-Allow-Origin", "*");
+      return doctors;
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
+    }
   }
 
   @Post("/data/{doctorId}")
   public async getDoctorData(@Body() body: AuthenticationBody, @Path() doctorId: string) {
-    const userId = await getUserId(body.jwt);
-    if (userId === "") {
-      return null;
-    }
-    const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
-    const resp = await db.getData({ id: doctorId });
-    let doc2;
-    if (resp !== null) {
-      doc2 = new User(
-        resp.first_name,
-        resp.last_name,
-        resp.street,
-        resp.number,
-        resp.postcode,
-        resp.city,
-        resp.insurance_number,
-        resp.insurance,
-        resp.approbation,
-        resp.verified,
-        resp.id
-      );
-      return doc2;
-    }
+    try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        return null;
+      }
+      const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
+      const resp = await db.getData({ id: doctorId });
+      let doc2;
+      if (resp !== null) {
+        doc2 = new User(
+          resp.first_name,
+          resp.last_name,
+          resp.street,
+          resp.number,
+          resp.postcode,
+          resp.city,
+          resp.insurance_number,
+          resp.insurance,
+          resp.approbation,
+          resp.verified,
+          resp.id
+        );
+        return doc2;
+      }
 
-    this.setStatus(404);
-    return "Invalid Query - No such userId.";
+      this.setStatus(404);
+      return "Invalid Query - No such userId.";
+    } catch (e) {
+      console.log(e);
+      this.setStatus(500);
+      return "Internal server error";
+    }
   }
 }
