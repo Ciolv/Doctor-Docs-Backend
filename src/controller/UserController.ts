@@ -5,6 +5,7 @@ import { DatabaseUser } from "../model/DatabaseUser";
 import { Filter } from "mongodb";
 import { AuthenticationBody } from "../model/Authentication";
 import { getUserId } from "../utils/AuthenticationHelper";
+import { Logger } from "../utils/Log";
 
 @Route("users")
 export class UserController extends Controller {
@@ -32,6 +33,7 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to fetch all user data`);
         this.setStatus(403);
         return;
       }
@@ -46,6 +48,7 @@ export class UserController extends Controller {
         return "User not found";
       }
 
+      Logger.info(`User ${userId} fetched own user data`);
       this.setStatus(200);
       return user;
     } catch (e) {
@@ -60,18 +63,20 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to search for insurance number ${insNumber}`);
         this.setStatus(403);
-        return null;
+        return;
       }
 
       const filter: Filter<User> = { insurance_number: insNumber };
       const result = await this.readDatabaseHandler.getData(filter);
       const userExists = result !== null;
 
+      Logger.info(`User ${userId} searched for insurance number ${insNumber}`);
       this.setStatus(200);
       return userExists;
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -82,6 +87,7 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to check registration status.`);
         this.setStatus(403);
         return;
       }
@@ -108,14 +114,16 @@ export class UserController extends Controller {
         user.id !== null;
 
       if (allFieldsSet) {
+        Logger.info(`User ${userId} registration is complete`);
         this.setStatus(200);
         return { completed: true };
       }
 
+      Logger.info(`User ${userId} registration is incomplete`);
       this.setStatus(200);
       return { completed: false };
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -125,12 +133,17 @@ export class UserController extends Controller {
   public async userRegistration(@Body() requestBody: User) {
     try {
       this.setStatus(200);
+      let userId;
       if (requestBody.approbation === "") {
-        return await this.writeDatabaseHandler.updateUser(requestBody);
+        userId = await this.writeDatabaseHandler.updateUser(requestBody);
+      } else {
+        userId = await this.writeDoctorDatabaseHandler.updateUser(requestBody);
       }
-      return await this.writeDoctorDatabaseHandler.updateUser(requestBody);
+
+      Logger.info(`New user ${userId} registered`);
+      return userId;
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }

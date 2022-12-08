@@ -1,4 +1,4 @@
-import { Body, Controller, Example, Get, Path, Post, Route } from "tsoa";
+import { Body, Controller, Example, Path, Post, Route } from "tsoa";
 import { Doctor } from "../model/Doctor";
 import { Database } from "./Database";
 import { DatabaseUser } from "../model/DatabaseUser";
@@ -6,6 +6,7 @@ import { ObjectId } from "mongodb";
 import { User } from "../model/User";
 import { AuthenticationBody } from "../model/Authentication";
 import { getUserId } from "../utils/AuthenticationHelper";
+import { Logger } from "../utils/Log";
 
 @Route("doctors")
 export class DoctorController extends Controller {
@@ -16,9 +17,16 @@ export class DoctorController extends Controller {
     plz: 68163,
     city: "Mannheim",
   })
-  @Get("{searchTerm}")
-  public async getDoctors(@Path() searchTerm: string) {
+  @Post("{searchTerm}")
+  public async getDoctors(@Path() searchTerm: string, @Body() body: AuthenticationBody) {
     try {
+      const userId = await getUserId(body.jwt);
+      if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to search for a doctor with searchterm '${searchTerm}'`);
+        this.setStatus(403);
+        return;
+      }
+
       const re = new RegExp(`\\w*${searchTerm}\\w*`);
       const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
       const doctors: User[] = [];
@@ -47,7 +55,7 @@ export class DoctorController extends Controller {
       this.setHeader("Access-Control-Allow-Origin", "*");
       return doctors;
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -58,7 +66,9 @@ export class DoctorController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        return null;
+        Logger.warning(`Unauthenticated user tried to access doctor data for ${doctorId}`);
+        this.setStatus(403);
+        return;
       }
       const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
       const resp = await db.getData({ id: doctorId });
@@ -77,13 +87,14 @@ export class DoctorController extends Controller {
           resp.verified,
           resp.id
         );
+        Logger.info(`User ${userId} requested date for doctor ${doctorId}`);
         return doc2;
       }
 
       this.setStatus(404);
       return "Invalid Query - No such userId.";
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }

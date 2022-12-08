@@ -9,6 +9,7 @@ import { Readable } from "stream";
 import { UpdateFilter } from "mongodb";
 import { getUserId } from "../utils/AuthenticationHelper";
 import { AuthenticationBody } from "../model/Authentication";
+import { Logger } from "../utils/Log";
 
 type PermitBody = AuthenticationBody & {
   action: "ADD" | "DELETE";
@@ -47,21 +48,24 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to access file ${fileId}`);
         this.setStatus(403);
         return;
       }
 
       const response = await this.readDatabaseHandler.getFile(fileId, userId);
       if (response !== null) {
+        Logger.info(`User ${userId} downloaded file ${fileId}`);
         const file = response as unknown as Buffer;
         this.setStatus(200);
         return Readable.from(file);
       }
 
+      Logger.warning(`User ${userId} tried to download file ${fileId}, but this file does not exist`);
       this.setStatus(404);
       return "File not found";
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -72,13 +76,15 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to get all files.`);
         this.setStatus(403);
         return;
       }
       this.setStatus(200);
+      Logger.info(`User ${userId} fetched available files`);
       return await this.readDatabaseHandler.getAllFiles(userId);
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -89,14 +95,16 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried set mark state to '${value.valueOf()}' for file ${fileId}`);
         this.setStatus(403);
         return;
       }
 
+      Logger.info(`User ${userId} changed mark state for file ${fileId}`);
       this.setStatus(200);
       return await this.updateDatabaseHandler.updateFile(fileId, { $set: { marked: value } }, userId);
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -107,14 +115,16 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to delete file ${fileId}`);
         this.setStatus(403);
         return;
       }
 
+      Logger.info(`User ${userId} deleted files ${fileId}`);
       this.setStatus(204);
       return await this.deleteDatabaseHandler.deleteFile(fileId, userId);
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -169,6 +179,7 @@ export class FileController extends Controller {
           }
         }
 
+        Logger.info(`User ${loggedInUserId} ${body.action} access for file ${fileId} and user ${userIdVar}`);
         this.setStatus(200);
         return await this.updateDatabaseHandler.updateFile(fileId, changes, loggedInUserId);
       }
@@ -176,7 +187,7 @@ export class FileController extends Controller {
       this.setStatus(404);
       return "Invalid Query - No such userId.";
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
@@ -187,6 +198,7 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(jwt);
       if (userId === "") {
+        Logger.warning(`Unauthenticated user tried to upload a file`);
         this.setStatus(403);
         return;
       }
@@ -196,6 +208,7 @@ export class FileController extends Controller {
         return "No file selected";
       }
 
+      Logger.info(`User ${userId} uploaded a new file`);
       this.setStatus(200);
       return await this.writeDatabaseHandler.uploadFile(
         file.originalname,
@@ -205,7 +218,7 @@ export class FileController extends Controller {
         this.parentId
       );
     } catch (e) {
-      console.log(e);
+      Logger.error(e);
       this.setStatus(500);
       return "Internal server error";
     }
