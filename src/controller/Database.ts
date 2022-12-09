@@ -8,7 +8,17 @@ import { objectDiff } from "../utils/ObjectHelper";
 import { decrypt, encrypt, EncryptionResult } from "../utils/encryption";
 
 config();
-const MAX_FILE_BYTE_SIZE = 419430400; // equals 50 MiB
+
+function getMaxFileByteSize() {
+  const parsedSize = parseInt(String(process.env.MAX_FILE_BYTE_SIZE));
+  if (isNaN(parsedSize)) {
+    return 419430400; // equals 50 MiB
+  }
+
+  return parsedSize;
+}
+
+const MAX_FILE_BYTE_SIZE = getMaxFileByteSize();
 
 export class Database {
   url: string;
