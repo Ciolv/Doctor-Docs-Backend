@@ -3,8 +3,11 @@ import express, { json, Request, Response, urlencoded } from "express";
 import { RegisterRoutes } from "../build/routes";
 import swaggerUi from "swagger-ui-express";
 import cors from "cors";
+import { config } from "dotenv";
 
 export const app = express();
+
+config();
 
 // Use body parser to read sent json payloads
 app.use(
@@ -13,8 +16,17 @@ app.use(
   })
 );
 
+function getOriginArray() {
+  const originString = process.env.CORS_ORIGINS;
+  if (originString === undefined) {
+    return [];
+  }
+
+  return originString.split(",");
+}
+
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: getOriginArray(),
   optionsSuccessStatus: 200,
 };
 
