@@ -12,8 +12,8 @@ config();
 // Use body parser to read sent json payloads
 app.use(
   urlencoded({
-               extended: true
-             })
+    extended: true,
+  })
 );
 
 function getOriginArray() {
@@ -27,7 +27,7 @@ function getOriginArray() {
 
 const corsOptions = {
   origin: getOriginArray(),
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
