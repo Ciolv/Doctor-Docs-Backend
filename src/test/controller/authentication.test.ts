@@ -10,7 +10,7 @@ beforeAll(() => {
   doctorController = new DoctorController();
   fileController = new FileController();
   userController = new UserController();
-})
+});
 
 describe("Authentication", () => {
   test("Verify geDoctors requires authentication", async () => {
@@ -34,7 +34,7 @@ describe("Authentication", () => {
   });
 
   test("Verify setMark requires authentication", async () => {
-    const result = await fileController.setMark( "", true, { jwt: "" });
+    const result = await fileController.setMark("", true, { jwt: "" });
     expect(result === "Unauthenticated");
   });
 
@@ -49,7 +49,7 @@ describe("Authentication", () => {
   });
 
   test("Verify uploadFile requires authentication", async () => {
-    const result = await fileController.uploadFile( "", {
+    const result = await fileController.uploadFile("", {
       buffer: Buffer.from(""),
       destination: "",
       encoding: "",
@@ -59,7 +59,7 @@ describe("Authentication", () => {
       originalname: "",
       path: "",
       size: 0,
-      stream: new Readable()
+      stream: new Readable(),
     });
     expect(result === "Unauthenticated");
   });
