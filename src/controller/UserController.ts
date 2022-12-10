@@ -178,7 +178,7 @@ export class UserController extends Controller {
         if (this.validateUser(requestBody)) {
           userId = await this.writeDatabaseHandler.updateUser(requestBody);
         } else {
-          Logger.warning("Invalid input during registration");
+          Logger.warn("Invalid input during registration");
           this.setStatus(400);
           return "Invalid Input";
         }
@@ -186,7 +186,7 @@ export class UserController extends Controller {
         if (this.validateDoctor(requestBody)) {
           userId = await this.writeDoctorDatabaseHandler.updateUser(requestBody);
         } else {
-          Logger.warning("Invalid input during registration");
+          Logger.warn("Invalid input during registration");
           this.setStatus(400);
           return "Invalid Input";
         }
