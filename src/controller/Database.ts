@@ -101,16 +101,13 @@ export class Database {
 
     if (user !== null) {
       if (user.approbation === "") {
-        const postcode = decrypt(user.postcode as EncryptionResult);
-        const number = decrypt(user.number as EncryptionResult);
-
         user.street = decrypt(user.street as EncryptionResult)?.toString() ?? "";
         user.city = decrypt(user.city as EncryptionResult)?.toString() ?? "";
         user.last_name = decrypt(user.last_name as EncryptionResult)?.toString() ?? "";
         user.first_name = decrypt(user.first_name as EncryptionResult)?.toString() ?? "";
         user.insurance = decrypt(user.insurance as EncryptionResult)?.toString() ?? "";
-        user.number = number ? parseInt(number.toString()) : 0;
-        user.postcode = postcode ? parseInt(postcode.toString()) : 0;
+        user.number = decrypt(user.number as EncryptionResult)?.toString() ?? "";
+        user.postcode = decrypt(user.postcode as EncryptionResult)?.toString() ?? "";
       }
 
       return user;
