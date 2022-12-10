@@ -6,6 +6,21 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  DB_CONN_LEGET: ${{ secrets.DB_CONN_LEGET }}
+  DB_CONN_SCRIBIT: ${{ secrets.DB_CONN_SCRIBIT }}
+  DB_CONN_REPONIT: ${{ secrets.DB_CONN_REPONIT }}
+  DB_CONN_EXSTINGUET: ${{ secrets.DB_CONN_EXSTINGUET }}
+  DB_CONN_ADMIN: ${{ secrets.DB_CONN_ADMIN }}
+  ENCRYPTION_KEY_PATH: ${{ secrets.ENCRYPTION_KEY_PATH }}
+  AZURE_TENANT_AUTHORITY: ${{ secrets.AZURE_TENANT_AUTHORITY }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_DISCOVERY_KEYS_ENDPOINT: ${{ secrets.AZURE_DISCOVERY_KEYS_ENDPOINT }}
+  LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+  CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+  PORT: ${{ secrets.PORT }}
+
+
 jobs:
   build:
 
