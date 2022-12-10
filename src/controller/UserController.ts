@@ -33,9 +33,9 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to fetch all user data`);
+        Logger.warn("Unauthenticated user tried to fetch all user data");
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       let user = await this.readDatabaseHandler.getUser(userId);
@@ -63,9 +63,9 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to search for insurance number ${insNumber}`);
+        Logger.warn(`Unauthenticated user tried to search for insurance number ${insNumber}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       const filter: Filter<User> = { insurance_number: insNumber };
@@ -87,9 +87,9 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to check registration status.`);
+        Logger.warn("Unauthenticated user tried to check registration status.");
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       let user = await this.readDatabaseHandler.getUser(userId);

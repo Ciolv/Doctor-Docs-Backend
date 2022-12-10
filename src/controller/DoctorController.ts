@@ -22,9 +22,9 @@ export class DoctorController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to search for a doctor with searchterm '${searchTerm}'`);
+        Logger.warn(`Unauthenticated user tried to search for a doctor with searchterm '${searchTerm}'`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       const re = new RegExp(`\\w*${searchTerm}\\w*`);
@@ -66,9 +66,9 @@ export class DoctorController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to access doctor data for ${doctorId}`);
+        Logger.warn(`Unauthenticated user tried to access doctor data for ${doctorId}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
       const db: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
       const resp = await db.getData({ id: doctorId });
