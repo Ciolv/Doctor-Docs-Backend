@@ -128,7 +128,7 @@ export class UserController extends Controller {
       return "Internal server error";
     }
   }
-  private validateUser(requestBody: User) {
+  private static validateUser(requestBody: User) {
     const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
     const street_number_regexp = /^[0-9]{1,4}$/;
     const postcode_regexp = /^[0-9]{5}$/;
@@ -149,7 +149,7 @@ export class UserController extends Controller {
     }
   }
 
-  private validateDoctor(requestBody: User) {
+  private static validateDoctor(requestBody: User) {
     const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
     const street_number_regexp = /^[0-9]{1,4}$/;
     const postcode_regexp = /^[0-9]{5}$/;
@@ -175,7 +175,7 @@ export class UserController extends Controller {
       let userId;
 
       if (requestBody.approbation === "") {
-        if (this.validateUser(requestBody)) {
+        if (UserController.validateUser(requestBody)) {
           userId = await this.writeDatabaseHandler.updateUser(requestBody);
         } else {
           Logger.warn("Invalid input during registration");
@@ -183,7 +183,7 @@ export class UserController extends Controller {
           return "Invalid Input";
         }
       } else {
-        if (this.validateDoctor(requestBody)) {
+        if (UserController.validateDoctor(requestBody)) {
           userId = await this.writeDoctorDatabaseHandler.updateUser(requestBody);
         } else {
           Logger.warn("Invalid input during registration");
