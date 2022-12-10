@@ -1,6 +1,6 @@
 import { app } from "./app";
-import * as https from "https";
-import * as fs from "fs";
+import https from "https";
+import fs from "fs";
 
 const port = process.env.PORT || 8080;
 
