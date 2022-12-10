@@ -4,9 +4,10 @@ import {
   isInsuranceName,
   isInsuranceNumber,
   isLastName,
-  isPostcode, isStreetName, isStreetNumber
+  isPostcode,
+  isStreetName,
+  isStreetNumber,
 } from "../../utils/Validation";
-
 
 describe("Input validation", () => {
   test("Invalid insurance number fails", () => {
