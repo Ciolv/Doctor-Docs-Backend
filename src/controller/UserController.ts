@@ -87,7 +87,7 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning("Unauthenticated user tried to check registration status.");
+        Logger.warn("Unauthenticated user tried to check registration status.");
         this.setStatus(403);
         return;
       }
