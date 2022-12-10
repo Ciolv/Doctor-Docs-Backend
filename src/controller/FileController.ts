@@ -48,9 +48,9 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to access file ${fileId}`);
+        Logger.warn(`Unauthenticated user tried to access file ${fileId}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       const response = await this.readDatabaseHandler.getFile(fileId, userId);
@@ -61,7 +61,7 @@ export class FileController extends Controller {
         return Readable.from(file);
       }
 
-      Logger.warning(`User ${userId} tried to download file ${fileId}, but this file does not exist`);
+      Logger.warn(`User ${userId} tried to download file ${fileId}, but this file does not exist`);
       this.setStatus(404);
       return "File not found";
     } catch (e) {
@@ -76,9 +76,9 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to get all files.`);
+        Logger.warn("Unauthenticated user tried to get all files.");
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
       this.setStatus(200);
       Logger.info(`User ${userId} fetched available files`);
@@ -95,9 +95,9 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried set mark state to '${value.valueOf()}' for file ${fileId}`);
+        Logger.warn(`Unauthenticated user tried set mark state to '${value.valueOf()}' for file ${fileId}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       Logger.info(`User ${userId} changed mark state for file ${fileId}`);
@@ -115,9 +115,9 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to delete file ${fileId}`);
+        Logger.warn(`Unauthenticated user tried to delete file ${fileId}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       this.setStatus(204);
@@ -129,7 +129,7 @@ export class FileController extends Controller {
           Logger.info(`User ${userId} removed own file permission for file ${fileId}`);
           return updateResult;
         } else {
-          Logger.warning(`Could not delete file or permission for user ${userId} and file ${fileId}`);
+          Logger.warn(`Could not delete file or permission for user ${userId} and file ${fileId}`);
           this.setStatus(500);
           return "Could not modify the given file";
         }
@@ -149,8 +149,9 @@ export class FileController extends Controller {
     try {
       const loggedInUserId = await getUserId(body.jwt);
       if (loggedInUserId === "") {
+        Logger.warn(`Unauthenticated user change file permission for file ${fileId}`);
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       let userIdVar;
@@ -212,9 +213,9 @@ export class FileController extends Controller {
     try {
       const userId = await getUserId(jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to upload a file`);
+        Logger.warn("Unauthenticated user tried to upload a file");
         this.setStatus(403);
-        return;
+        return "Unauthenticated";
       }
 
       if (file === undefined) {
