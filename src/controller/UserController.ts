@@ -21,8 +21,8 @@ export class UserController extends Controller {
                    first_name: "Gernot",
                    last_name: "Hassknecht",
                    street: "Ehrenfelder Straße",
-                   number: 7,
-                   postcode: 516915,
+                   number: "7",
+                   postcode: "516915",
                    city: "Köln",
                    insurance: "BARMER",
                    insurance_number: "N26815181181585138",
@@ -140,8 +140,8 @@ export class UserController extends Controller {
         text_regexp.test((requestBody.first_name as string)) &&
         text_regexp.test((requestBody.last_name as string)) &&
         text_regexp.test((requestBody.insurance as string)) &&
-        street_number_regexp.test(String(requestBody.number)) &&
-        postcode_regexp.test(String(requestBody.postcode)) &&
+        street_number_regexp.test(requestBody.number as string) &&
+        postcode_regexp.test(requestBody.postcode as string) &&
         insurance_number_regexp.test((requestBody.insurance_number as string))) {
       return true
     } else {
@@ -157,8 +157,8 @@ export class UserController extends Controller {
         text_regexp.test((requestBody.street as string)) &&
         text_regexp.test((requestBody.first_name as string)) &&
         text_regexp.test((requestBody.last_name as string)) &&
-        street_number_regexp.test(String(requestBody.number)) &&
-        postcode_regexp.test(String(requestBody.postcode)) &&
+        street_number_regexp.test(requestBody.number as string) &&
+        postcode_regexp.test(requestBody.postcode as string) &&
         text_regexp.test((requestBody.approbation as string))) {
       return true
     } else {

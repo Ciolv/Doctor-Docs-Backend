@@ -5,8 +5,8 @@ export class User {
   first_name: EncryptionResult | string;
   last_name: EncryptionResult | string;
   street: EncryptionResult | string;
-  number: EncryptionResult | number;
-  postcode: EncryptionResult | number;
+  number: EncryptionResult | string;
+  postcode: EncryptionResult | string;
   city: EncryptionResult | string;
   insurance_number?: string;
   insurance?: EncryptionResult | string;
@@ -17,8 +17,8 @@ export class User {
     first_name: EncryptionResult | string,
     last_name: EncryptionResult | string,
     street: EncryptionResult | string,
-    number: EncryptionResult | number,
-    postcode: EncryptionResult | number,
+    number: EncryptionResult | string,
+    postcode: EncryptionResult | string,
     city: EncryptionResult | string,
     insurance_number?: string,
     insurance?: EncryptionResult | string,
