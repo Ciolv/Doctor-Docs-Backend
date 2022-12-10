@@ -6,6 +6,16 @@ import { Filter } from "mongodb";
 import { AuthenticationBody } from "../model/Authentication";
 import { getUserId } from "../utils/AuthenticationHelper";
 import { Logger } from "../utils/Log";
+import {
+  isCityName,
+  isFirstName,
+  isInsuranceName,
+  isInsuranceNumber,
+  isLastName,
+  isPostcode,
+  isStreetName,
+  isStreetNumber,
+} from "../utils/Validation";
 
 @Route("users")
 export class UserController extends Controller {
@@ -128,44 +138,28 @@ export class UserController extends Controller {
       return "Internal server error";
     }
   }
+
+  private static validateUserBaseData(requestBody: User) {
+    return (
+      isCityName(requestBody.city as string) &&
+      isStreetName(requestBody.street as string) &&
+      isFirstName(requestBody.first_name as string) &&
+      isLastName(requestBody.last_name as string) &&
+      isStreetNumber(requestBody.number as string) &&
+      isPostcode(requestBody.postcode as string)
+    );
+  }
+
   private static validateUser(requestBody: User) {
-    const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
-    const street_number_regexp = /^[0-9]{1,4}$/;
-    const postcode_regexp = /^[0-9]{5}$/;
-    const insurance_number_regexp = /^[A-Z][0-9]{9}$/;
-    if (
-      text_regexp.test(requestBody.city as string) &&
-      text_regexp.test(requestBody.street as string) &&
-      text_regexp.test(requestBody.first_name as string) &&
-      text_regexp.test(requestBody.last_name as string) &&
-      text_regexp.test(requestBody.insurance as string) &&
-      street_number_regexp.test(requestBody.number as string) &&
-      postcode_regexp.test(requestBody.postcode as string) &&
-      insurance_number_regexp.test(requestBody.insurance_number as string)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    return (
+      UserController.validateUserBaseData(requestBody) &&
+      isInsuranceName(requestBody.insurance as string) &&
+      isInsuranceNumber(requestBody.insurance_number as string)
+    );
   }
 
   private static validateDoctor(requestBody: User) {
-    const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
-    const street_number_regexp = /^[0-9]{1,4}$/;
-    const postcode_regexp = /^[0-9]{5}$/;
-    if (
-      text_regexp.test(requestBody.city as string) &&
-      text_regexp.test(requestBody.street as string) &&
-      text_regexp.test(requestBody.first_name as string) &&
-      text_regexp.test(requestBody.last_name as string) &&
-      street_number_regexp.test(requestBody.number as string) &&
-      postcode_regexp.test(requestBody.postcode as string) &&
-      text_regexp.test(requestBody.approbation as string)
-    ) {
-      return true;
-    } else {
-      return false;
-    }
+    return UserController.validateUserBaseData(requestBody) && isCityName(requestBody.approbation as string);
   }
 
   @Post("registration")
