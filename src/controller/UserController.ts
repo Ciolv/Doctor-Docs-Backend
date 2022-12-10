@@ -33,7 +33,7 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning("Unauthenticated user tried to fetch all user data");
+        Logger.warn("Unauthenticated user tried to fetch all user data");
         this.setStatus(403);
         return;
       }
@@ -63,7 +63,7 @@ export class UserController extends Controller {
     try {
       const userId = await getUserId(body.jwt);
       if (userId === "") {
-        Logger.warning(`Unauthenticated user tried to search for insurance number ${insNumber}`);
+        Logger.warn(`Unauthenticated user tried to search for insurance number ${insNumber}`);
         this.setStatus(403);
         return;
       }
