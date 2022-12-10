@@ -14,7 +14,7 @@ export class DoctorController extends Controller {
     id: new ObjectId(12),
     name: "Dr. med. Jonas Fabian Pohle",
     street: "Haardtstraße 16",
-    plz: 68163,
+    plz: "68163",
     city: "Mannheim",
   })
   @Post("{searchTerm}")
