@@ -25,12 +25,14 @@ export function isStreetName(value: string) {
 }
 
 export function isFirstName(value: string) {
-  const regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zäöüêéèôóòûúùß-]+(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]*[a-zäöüêéèôóòûúùß-]+)*( \d+\.| [A-Z]+\.?)*$/;
+  const regexp =
+    /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zäöüêéèôóòûúùß-]+(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]*[a-zäöüêéèôóòûúùß-]+)*( \d+\.| [A-Z]+\.?)*$/;
   return regexp.test(value);
 }
 
 export function isLastName(value: string) {
-  const regexp = /^(?:[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]?[A-ZÄÖÜÊÉÈÔÓÒÛÚÙa-zäöüêéèôóòûúùß-]){2,}(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙa-zäöüêéèôóòûúùß]+-?)*$/;
+  const regexp =
+    /^(?:[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]?[A-ZÄÖÜÊÉÈÔÓÒÛÚÙa-zäöüêéèôóòûúùß-]){2,}(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙa-zäöüêéèôóòûúùß]+-?)*$/;
   return regexp.test(value);
 }
 
