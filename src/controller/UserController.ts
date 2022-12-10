@@ -21,8 +21,8 @@ export class UserController extends Controller {
     first_name: "Gernot",
     last_name: "Hassknecht",
     street: "Ehrenfelder Straße",
-    number: 7,
-    postcode: 516915,
+    number: "7",
+    postcode: "516915",
     city: "Köln",
     insurance: "BARMER",
     insurance_number: "N26815181181585138",
@@ -128,16 +128,68 @@ export class UserController extends Controller {
       return "Internal server error";
     }
   }
+  private static validateUser(requestBody: User) {
+    const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
+    const street_number_regexp = /^[0-9]{1,4}$/;
+    const postcode_regexp = /^[0-9]{5}$/;
+    const insurance_number_regexp = /^[A-Z][0-9]{9}$/;
+    if (
+      text_regexp.test(requestBody.city as string) &&
+      text_regexp.test(requestBody.street as string) &&
+      text_regexp.test(requestBody.first_name as string) &&
+      text_regexp.test(requestBody.last_name as string) &&
+      text_regexp.test(requestBody.insurance as string) &&
+      street_number_regexp.test(requestBody.number as string) &&
+      postcode_regexp.test(requestBody.postcode as string) &&
+      insurance_number_regexp.test(requestBody.insurance_number as string)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static validateDoctor(requestBody: User) {
+    const text_regexp = /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zA-ZÄÖÜäöüÊÉÈêéèÔÓÒôóòÛÚÙûúù\\-\\s\\.]+$/;
+    const street_number_regexp = /^[0-9]{1,4}$/;
+    const postcode_regexp = /^[0-9]{5}$/;
+    if (
+      text_regexp.test(requestBody.city as string) &&
+      text_regexp.test(requestBody.street as string) &&
+      text_regexp.test(requestBody.first_name as string) &&
+      text_regexp.test(requestBody.last_name as string) &&
+      street_number_regexp.test(requestBody.number as string) &&
+      postcode_regexp.test(requestBody.postcode as string) &&
+      text_regexp.test(requestBody.approbation as string)
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   @Post("registration")
   public async userRegistration(@Body() requestBody: User) {
     try {
       this.setStatus(200);
       let userId;
+
       if (requestBody.approbation === "") {
-        userId = await this.writeDatabaseHandler.updateUser(requestBody);
+        if (UserController.validateUser(requestBody)) {
+          userId = await this.writeDatabaseHandler.updateUser(requestBody);
+        } else {
+          Logger.warn("Invalid input during registration");
+          this.setStatus(400);
+          return "Invalid Input";
+        }
       } else {
-        userId = await this.writeDoctorDatabaseHandler.updateUser(requestBody);
+        if (UserController.validateDoctor(requestBody)) {
+          userId = await this.writeDoctorDatabaseHandler.updateUser(requestBody);
+        } else {
+          Logger.warn("Invalid input during registration");
+          this.setStatus(400);
+          return "Invalid Input";
+        }
       }
 
       Logger.info(`New user ${userId} registered`);
