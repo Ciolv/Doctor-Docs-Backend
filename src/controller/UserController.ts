@@ -169,20 +169,17 @@ export class UserController extends Controller {
 
       if (requestBody.approbation === "" && requestBody.insurance_number !== undefined) {
         if (UserController.validateUser(requestBody)) {
-
           const filter: Filter<User> = { insurance_number: requestBody.insurance_number };
           const result = await this.readDatabaseHandler.getData(filter);
           const userExists = result !== null;
 
           if (!userExists || (userExists && (result as unknown as User).id === requestBody.id)) {
             userId = await this.writeDatabaseHandler.updateUser(requestBody);
-          }
-          else {
-            Logger.warn("Insurance number already registered")
+          } else {
+            Logger.warn("Insurance number already registered");
             this.setStatus(409);
             return "This Insurance Number is already registered";
           }
-
         } else {
           Logger.warn("Invalid input during registration");
           this.setStatus(400);
