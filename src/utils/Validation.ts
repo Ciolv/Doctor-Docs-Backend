@@ -26,7 +26,7 @@ export function isStreetName(value: string) {
 
 export function isFirstName(value: string) {
   const regexp =
-    /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][a-zäöüêéèôóòûúùß-]+(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]*[a-zäöüêéèôóòûúùß-]+)*( \d+\.| [A-Z]+\.?)*$/;
+    /^[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ][.a-zäöüêéèôóòûúùß-]+(?:(?: |-)[A-ZÄÖÜÊÉÈÔÓÒÛÚÙ]*[.a-zäöüêéèôóòûúùß-]+)*( \d+\.| [A-Z]+\.?)*$/;
   return regexp.test(value);
 }
 
