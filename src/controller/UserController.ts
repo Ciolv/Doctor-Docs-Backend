@@ -23,7 +23,6 @@ export class UserController extends Controller {
   readDoctorDatabaseHandler: Database = new Database(DatabaseUser.LEGET, "accounts", "doctors");
   writeDatabaseHandler: Database = new Database(DatabaseUser.SCRIBIT, "accounts", "users");
   writeDoctorDatabaseHandler: Database = new Database(DatabaseUser.SCRIBIT, "accounts", "doctors");
-  // deleteDatabaseHandler: Database = new Database(DatabaseUser.EXSTINGUET, "accounts", "users");
   updateDatabaseHandler: Database = new Database(DatabaseUser.REPONIT, "accounts", "users");
 
   @Example<User>({
@@ -168,9 +167,19 @@ export class UserController extends Controller {
       this.setStatus(200);
       let userId;
 
-      if (requestBody.approbation === "") {
+      if (requestBody.approbation === "" && requestBody.insurance_number !== undefined) {
         if (UserController.validateUser(requestBody)) {
-          userId = await this.writeDatabaseHandler.updateUser(requestBody);
+          const filter: Filter<User> = { insurance_number: requestBody.insurance_number };
+          const result = await this.readDatabaseHandler.getData(filter);
+          const userExists = result !== null;
+
+          if (!userExists || (userExists && (result as unknown as User).id === requestBody.id)) {
+            userId = await this.writeDatabaseHandler.updateUser(requestBody);
+          } else {
+            Logger.warn("Insurance number already registered");
+            this.setStatus(409);
+            return "This Insurance Number is already registered";
+          }
         } else {
           Logger.warn("Invalid input during registration");
           this.setStatus(400);
